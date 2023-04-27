@@ -14,8 +14,14 @@ class ApiRootView(APIView):
     def get(self, request):
         return Response({
             "users_url": reverse.reverse_lazy('users:user-list', request=request),
+            "deliver_agents_url": reverse.reverse_lazy('users:agent-list', request=request),
+            "doctors_url": reverse.reverse_lazy('users:doctor-list', request=request),
+            "patients_url": reverse.reverse_lazy('users:patient-list', request=request),
             "clinics_url": reverse.reverse_lazy('core:clinic-list', request=request),
-            "delivery_modes_url": reverse.reverse_lazy('core:clinic-list', request=request),
+            "delivery_modes_url": reverse.reverse_lazy('core:mode-list', request=request),
+            "orders_url": reverse.reverse_lazy('orders:order-list', request=request),
+            "feedback_url": reverse.reverse_lazy('orders:feedback-list', request=request),
+            "delivery_url": reverse.reverse_lazy('orders:delivery-list', request=request),
         })
 
 

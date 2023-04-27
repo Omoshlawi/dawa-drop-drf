@@ -21,10 +21,10 @@ class DoctorAdmin(admin.ModelAdmin):
 
 
 @admin.register(Patient)
-class DoctorAdmin(admin.ModelAdmin):
+class PatientAdmin(admin.ModelAdmin):
     list_display = ("user", 'patient_number', 'next_of_keen', 'base_clinic', 'created_at')
 
 
 @admin.register(DeliverAgent)
-class DoctorAdmin(admin.ModelAdmin):
-    list_display = ("user", 'agent_number', 'delivery_mode', 'work_clinic', 'created_at')
+class DeliverAgentAdmin(admin.ModelAdmin):
+    list_display = ('id', "user", 'agent_number', 'delivery_mode', 'work_clinic', 'created_at')

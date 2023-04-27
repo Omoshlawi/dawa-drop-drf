@@ -20,7 +20,7 @@ GENDER_CHOICES = (
 USER_TYPE_CHOICES = (
     ('agent', 'agent'),
     ('patient', 'patient'),
-    ('soctor', 'doctor'),
+    ('doctor', 'doctor'),
 )
 
 
@@ -35,8 +35,8 @@ class Profile(models.Model):
     address = models.CharField(max_length=255, null=True, blank=True)
     phone_number = PhoneNumberField(null=True, blank=True)
     user_type = models.CharField(choices=USER_TYPE_CHOICES, default='patient', max_length=20)
-    created_at = models.DateField(auto_now=True)
-    updated_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"{self.user.username}'s Profile"
@@ -45,9 +45,9 @@ class Profile(models.Model):
 class Doctor(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='doctor')
     doctor_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    hiv_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE)
-    created_at = models.DateField(auto_now=True)
-    updated_at = models.DateField(auto_now_add=True)
+    hiv_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"Doctor {self.user.get_full_name()}"
@@ -58,8 +58,8 @@ class Patient(models.Model):
     patient_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     next_of_keen = models.CharField(max_length=255, blank=True, null=False)
     base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
-    created_at = models.DateField(auto_now=True)
-    updated_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"Patient {self.user.get_full_name()}"
@@ -71,8 +71,8 @@ class DeliverAgent(models.Model):
     delivery_mode = models.ForeignKey(DeliveryMode, on_delete=models.CASCADE, related_name='agents')
     work_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, related_name='agents')
     is_approved = models.BooleanField(default=False)
-    created_at = models.DateField(auto_now=True)
-    updated_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"Agent {self.user.get_full_name()}"

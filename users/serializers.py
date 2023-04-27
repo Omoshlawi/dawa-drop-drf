@@ -122,25 +122,30 @@ class DoctorSerializer(serializers.ModelSerializer):
         model = Doctor
         fields = ('doctor_number', 'hiv_clinic', 'created_at', 'updated_at')
         extra_kwargs = {
-            'doctor_number': {'read_only': True}
+            'doctor_number': {'read_only': True},
+            'url': {'view_name': 'users:doctor-list'},
+
         }
 
 
-class PatientSerializer(serializers.ModelSerializer):
+class PatientSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Patient
-        fields = ('patient_number', 'next_of_keen', 'base_clinic', 'created_at', 'updated_at')
+        fields = ('url', 'patient_number', 'next_of_keen', 'base_clinic', 'created_at', 'updated_at')
         extra_kwargs = {
-            'patient_number': {'read_only': True}
+            'patient_number': {'read_only': True},
+            'url': {'view_name': 'users:patient-list'},
+
         }
 
 
-class DeliverAgentSerializer(serializers.ModelSerializer):
+class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = DeliverAgent
-        fields = ('agent_number', 'delivery_mode', 'work_clinic', 'created_at', 'updated_at')
+        fields = ('url', 'agent_number', 'delivery_mode', 'work_clinic', 'created_at', 'updated_at')
         extra_kwargs = {
-            'agent_number': {'read_only': True}
+            'agent_number': {'read_only': True},
+            'url': {'view_name': 'users:agent-list'},
         }
 
 
@@ -172,6 +177,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         elif profile.user_type == 'doctor':
             doctor = Doctor.objects.get_or_create(user=instance)[0]
             doctor_data = validated_data.pop('doctor')
+            print(doctor_data)
             for key, value in doctor_data.items():
                 setattr(doctor, key, value)
             doctor.save()

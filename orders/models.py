@@ -28,22 +28,33 @@ class Order(models.Model):
 
 
 class Delivery(models.Model):
-    order = models.OneToOneField(Order, related_name='order', on_delete=models.CASCADE)
+    order = models.OneToOneField(Order, related_name='delivery', on_delete=models.CASCADE)
     code = models.CharField(max_length=32, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     delivery_medicine = models.CharField(max_length=255, blank=True, null=True)
     instruction = models.TextField(null=True, blank=True)
-    doctor = models.ForeignKey(Doctor, related_name='deliveries', on_delete=models.CASCADE)
+    doctor = models.ForeignKey(
+        Doctor,
+        related_name='deliveries',
+        on_delete=models.CASCADE
+    )
     # todo Think about delete cascade
-    delivery_agent = models.ForeignKey(DeliverAgent, related_name='deliveries', on_delete=models.CASCADE)
+    delivery_agent = models.ForeignKey(
+        DeliverAgent,
+        related_name='deliveries',
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
         ordering = ['-created_at']
 
+    def __str__(self):
+        return f"{self.order.user.get_full_name()}'s Delivery"
+
 
 class DeliveryFeedBack(models.Model):
     delivery = models.OneToOneField(Delivery, related_name='feedback', on_delete=models.CASCADE)
-    review = models.TextField()
+    review = models.TextField(blank=True, null=True)
     rating = models.IntegerField(
         choices=(
             (1, '1'),
@@ -58,20 +69,3 @@ class DeliveryFeedBack(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-
-@receiver(post_save, sender=Order)
-def create_order_deliver(sender, instance, created, **kwargs):
-    """
-       Generate unique delivery code for every order made
-    """
-    if created:
-        # Generate a 32-character string
-        random_string = secrets.token_hex(16)
-        # make sure its unique
-        while Delivery.objects.filter(code=random_string):
-            random_string = secrets.token_hex(16)
-        # create delivery object
-        Delivery.objects.create(
-            order=instance,
-            code=random_string
-        )
