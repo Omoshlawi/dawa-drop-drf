@@ -5,6 +5,7 @@ django-filter==22.1
 django-phonenumber-field==7.0.2
 django-taggit==3.1.0
 djangorestframework==3.14.0
+drf-nested-routers==0.93.4
 Markdown==3.4.1
 phonenumbers==8.13.7
 Pillow==9.4.0

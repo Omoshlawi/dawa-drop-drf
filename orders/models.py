@@ -11,6 +11,7 @@ from users.models import Doctor, DeliverAgent
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    national_id = models.PositiveIntegerField()
     date_of_depletion = models.DateField(default=timezone.now)
     reach_out_phone_number = PhoneNumberField(null=True, blank=True)
     longitude = models.DecimalField(max_digits=22, decimal_places=16)

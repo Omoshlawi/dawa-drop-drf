@@ -44,7 +44,7 @@ class Profile(models.Model):
 
 class Doctor(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='doctor')
-    doctor_number = models.CharField(max_length=50, unique=True, null=False, blank=False)
+    doctor_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     hiv_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE)
     created_at = models.DateField(auto_now=True)
     updated_at = models.DateField(auto_now_add=True)
@@ -57,7 +57,7 @@ class Patient(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='patient')
     patient_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     next_of_keen = models.CharField(max_length=255, blank=True, null=False)
-    base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE)
+    base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateField(auto_now=True)
     updated_at = models.DateField(auto_now_add=True)
 
@@ -70,11 +70,28 @@ class DeliverAgent(models.Model):
     agent_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     delivery_mode = models.ForeignKey(DeliveryMode, on_delete=models.CASCADE, related_name='agents')
     work_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, related_name='agents')
+    is_approved = models.BooleanField(default=False)
     created_at = models.DateField(auto_now=True)
     updated_at = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"Agent {self.user.get_full_name()}"
+
+    def to_patient(self):
+        patient = Patient.objects.create(
+            user=self.user,
+            base_clinic=self.work_clinic,
+        )
+        DeliverAgent.objects.delete(id=self.id)
+        return patient
+
+    def to_doctor(self):
+        doctor = Doctor.objects.create(
+            user=self.user,
+            hiv_clinic=self.work_clinic
+        )
+        DeliverAgent.objects.delete(id=self.id)
+        return doctor
 
 
 @receiver(post_save, sender=User)
@@ -83,16 +100,15 @@ def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
 
-
-@receiver(post_save, sender=Profile)
-def create_user_type(sender, instance, created, **kwargs):
-    # TODO Implement logi for user types
-    if instance.user_type == 'agent':
-        # Perform agent operation
-        pass
-    elif instance.user_type == 'doctor':
-        # perform doctor operation
-        pass
-    else:
-        # perform patient operation
-        pass
+# @receiver(post_save, sender=Profile)
+# def create_user_type(sender, instance, created, **kwargs):
+#     # TODO THE DELETE IN TO_USERTYPE CAUSED CASCASE DELETE WHEN TYPE CHANGED IF ALREADY USED AT ONE POINT
+#     if instance.user_type == 'agent':
+#         # Perform agent operation
+#         DeliverAgent.objects.create(user=instance.user)
+#     elif instance.user_type == 'doctor':
+#         # perform doctor operation
+#         Doctor.objects.create(user=instance.user)
+#     else:
+#         # perform patient operation
+#         Patient.objects.create(user=instance.user)
