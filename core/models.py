@@ -21,6 +21,9 @@ class HIVClinic(models.Model):
 class DeliveryMode(models.Model):
     mode = models.CharField(unique=True, max_length=50)
 
+    def __str__(self):
+        return self.mode
+
     class Meta:
         ordering = ['-mode']
 

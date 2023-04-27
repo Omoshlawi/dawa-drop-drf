@@ -99,16 +99,3 @@ def create_profile(sender, instance, created, **kwargs):
     # create profile
     if created:
         Profile.objects.create(user=instance)
-
-# @receiver(post_save, sender=Profile)
-# def create_user_type(sender, instance, created, **kwargs):
-#     # TODO THE DELETE IN TO_USERTYPE CAUSED CASCASE DELETE WHEN TYPE CHANGED IF ALREADY USED AT ONE POINT
-#     if instance.user_type == 'agent':
-#         # Perform agent operation
-#         DeliverAgent.objects.create(user=instance.user)
-#     elif instance.user_type == 'doctor':
-#         # perform doctor operation
-#         Doctor.objects.create(user=instance.user)
-#     else:
-#         # perform patient operation
-#         Patient.objects.create(user=instance.user)

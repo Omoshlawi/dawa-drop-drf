@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
-from users.models import Profile, Doctor, Patient, DeliverAgent
+from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES
 
 
 class UserCredentialSerializer(serializers.Serializer):
@@ -103,6 +103,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ('gender', 'image', 'phone_number', 'address', 'user_type')
+        extra_kwargs = {
+            'user_type': {'read_only': True}
+        }
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -118,39 +121,64 @@ class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = ('doctor_number', 'hiv_clinic', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'doctor_number': {'read_only': True}
+        }
 
 
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = ('patient_number', 'next_of_keen', 'base_clinic', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'patient_number': {'read_only': True}
+        }
 
 
 class DeliverAgentSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliverAgent
         fields = ('agent_number', 'delivery_mode', 'work_clinic', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'agent_number': {'read_only': True}
+        }
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     is_staff = serializers.BooleanField(read_only=True)
     profile = ProfileSerializer()
+    agent = DeliverAgentSerializer()
+    doctor = DoctorSerializer()
+    patient = PatientSerializer()
     username = serializers.CharField(read_only=True)
     email = serializers.EmailField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 'is_staff', 'profile']
+        fields = ['username', 'email', 'first_name', 'last_name', 'is_staff', 'profile', 'patient', 'doctor', 'agent']
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop("profile")
-        try:
-            profile = instance.profile
-            if profile:
-                for key in profile_data:
-                    setattr(profile, key, profile_data[key])
-                profile.save()
-        except ObjectDoesNotExist:
-            Profile.objects.create(user=instance, **profile_data)
-        return super().update(instance, validated_data)
-
+        profile = Profile.objects.get_or_create(user=instance)[0]
+        for key, value in profile_data.items():
+            setattr(profile, key, value)
+        profile.save()
+        if profile.user_type == 'agent':
+            agent = DeliverAgent.objects.get_or_create(user=instance)[0]
+            agent_data = validated_data.pop('agent')
+            for key, value in agent_data.items():
+                setattr(agent, key, value)
+            agent.save()
+        elif profile.user_type == 'doctor':
+            doctor = Doctor.objects.get_or_create(user=instance)[0]
+            doctor_data = validated_data.pop('doctor')
+            for key, value in doctor_data.items():
+                setattr(doctor, key, value)
+            doctor.save()
+        else:
+            patient = Patient.objects.get_or_create(user=instance)[0]
+            patient_data = validated_data.pop('patient')
+            for key, value in patient_data.items():
+                setattr(patient, key, value)
+            patient.save()
+        return instance

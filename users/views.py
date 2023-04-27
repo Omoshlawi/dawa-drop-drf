@@ -1,16 +1,18 @@
 from django.contrib.auth import authenticate
-from django.shortcuts import render
 from django.contrib.auth.models import User
-from rest_framework import routers, serializers, viewsets
-from rest_framework.authentication import TokenAuthentication, BasicAuthentication
+from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_201_CREATED
 
-from users.serializers import UserSerializer, UserCredentialSerializer, UserRegistrationSerializer, UserLoginSerializer, \
+from users.serializers import (
+    UserSerializer, UserCredentialSerializer,
+    UserRegistrationSerializer, UserLoginSerializer,
     UserProfileSerializer
+)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -22,15 +24,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         url_path='change-password',
         url_name='change_password',
         description="Change current User password",
-        # http://127.0.0.1:8000/users/1/change-password/ detail=True makesure its the current 1
         detail=True,
-        # authentication_classes=[TokenAuthentication],
         permission_classes=[
             IsAuthenticated
         ],
         serializer_class=UserCredentialSerializer
     )
-    # Hover action for details or control click to see documentation
     def change_password(self, request, *args, **kwargs):
         """
         Simply works as view function on view methods
