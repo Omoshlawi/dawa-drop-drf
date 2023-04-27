@@ -69,6 +69,7 @@ class DeliverAgent(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='agent')
     agent_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     delivery_mode = models.ForeignKey(DeliveryMode, on_delete=models.CASCADE, related_name='agents')
+    work_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, related_name='agents')
     created_at = models.DateField(auto_now=True)
     updated_at = models.DateField(auto_now_add=True)
 
