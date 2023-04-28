@@ -12,11 +12,11 @@ from users.models import Doctor, DeliverAgent
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     national_id = models.PositiveIntegerField()
-    date_of_depletion = models.DateField(default=timezone.now)
+    date_of_depletion = models.DateField()
     reach_out_phone_number = PhoneNumberField(null=True, blank=True)
     longitude = models.DecimalField(max_digits=22, decimal_places=16)
     latitude = models.DecimalField(max_digits=22, decimal_places=16)
-    address = models.CharField(max_length=300)
+    address = models.CharField(max_length=300, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -68,4 +68,3 @@ class DeliveryFeedBack(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-

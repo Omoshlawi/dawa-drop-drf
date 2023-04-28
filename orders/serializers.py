@@ -48,18 +48,19 @@ class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = DeliveryFeedBack
-        fields = ['url', 'code', 'order', 'delivery', 'review', 'rating', 'created_at']
+        fields = ['url', 'code', 'order', 'review', 'rating', 'created_at']
         extra_kwargs = {
             'url': {'view_name': 'orders:feedback-detail'},
-            'delivery': {'view_name': 'orders:feedback-detail'},
         }
 
     def validate_code(self, attr):
         try:
-            Delivery.objects.get(code=attr)
+            delivery = Delivery.objects.get(code=attr, order__user=self.context.get('request').user)
+            if DeliveryFeedBack.objects.filter(delivery=delivery):
+                raise ValidationError("Invalid Code, the code has been used")
             return attr
         except Delivery.DoesNotExist:
-            raise ValidationError("No delivery with that code, please scan again or type manually")
+            raise ValidationError("Invalid code, please scan again or type manually")
 
     def create(self, validated_data):
         code = validated_data.pop('code')
