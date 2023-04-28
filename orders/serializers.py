@@ -6,10 +6,14 @@ from .models import Order, Delivery, DeliveryFeedBack
 
 
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
+    order_id = serializers.SerializerMethodField()
+
+    def get_order_id(self, instance):
+        return instance.get_id()
     class Meta:
         model = Order
         fields = [
-            'url', 'user', 'national_id', 'date_of_depletion',
+            'url','order_id', 'user', 'national_id', 'date_of_depletion',
             'reach_out_phone_number', 'longitude', 'latitude',
             'address', 'created_at', 'updated_at'
         ]

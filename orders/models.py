@@ -23,6 +23,9 @@ class Order(models.Model):
     def __str__(self):
         return f'Order {self.id}'
 
+    def get_id(self):
+        return f"KHMIS-DDOR-{self.created_at.year}-{self.id}"
+
     class Meta:
         ordering = ['-created_at']
 
