@@ -7,15 +7,24 @@ from .models import Order, Delivery, DeliveryFeedBack
 
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
     order_id = serializers.SerializerMethodField()
+    is_delivered = serializers.SerializerMethodField()
+    is_approved = serializers.SerializerMethodField()
 
     def get_order_id(self, instance):
         return instance.get_id()
+
+    def get_is_delivered(self, instance):
+        return instance.is_delivered
+
+    def get_is_approved(self, instance):
+        return instance.is_approved
+
     class Meta:
         model = Order
         fields = [
-            'url','order_id', 'user', 'national_id', 'date_of_depletion',
+            'url', 'order_id', 'user', 'national_id', 'date_of_depletion',
             'reach_out_phone_number', 'longitude', 'latitude',
-            'address', 'created_at', 'updated_at'
+            'address', 'is_delivered', 'is_approved', 'created_at', 'updated_at'
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:order-detail', 'read_only': True},

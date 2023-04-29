@@ -26,6 +26,14 @@ class Order(models.Model):
     def get_id(self):
         return f"KHMIS-DDOR-{self.created_at.year}-{self.id}"
 
+    @property
+    def is_delivered(self):
+        return bool(DeliveryFeedBack.objects.filter(delivery__order=self))
+
+    @property
+    def is_approved(self):
+        return bool(Delivery.objects.filter(order=self))
+
     class Meta:
         ordering = ['-created_at']
 
