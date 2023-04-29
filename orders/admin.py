@@ -17,8 +17,9 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Delivery)
 class DeliveryAdmin(admin.ModelAdmin):
     list_display = (
-        'order', 'code', 'created_at', 'delivery_medicine', 'doctor', 'delivery_agent'
+        'order', 'code', 'created_at', 'delivery_medicine', 'doctor', 'delivery_agent', 'instruction'
     )
+    list_editable = ('delivery_medicine', 'instruction', 'delivery_agent')
 
 
 @admin.register(DeliveryFeedBack)

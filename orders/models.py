@@ -42,7 +42,7 @@ class Delivery(models.Model):
     order = models.OneToOneField(Order, related_name='delivery', on_delete=models.CASCADE)
     code = models.CharField(max_length=32, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    delivery_medicine = models.CharField(max_length=255, blank=True, null=True)
+    delivery_medicine = models.TextField(blank=True, null=True)
     instruction = models.TextField(null=True, blank=True)
     doctor = models.ForeignKey(
         Doctor,
