@@ -56,6 +56,9 @@ class Delivery(models.Model):
         on_delete=models.CASCADE,
     )
 
+    def get_id(self):
+        return f"KHMIS-DDDY-{self.created_at.year}-{self.id}"
+
     class Meta:
         ordering = ['-created_at']
 

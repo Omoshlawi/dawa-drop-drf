@@ -188,3 +188,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 setattr(patient, key, value)
             patient.save()
         return instance
+
+
+class PublicProfileSerializer(serializers.HyperlinkedModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, instance):
+        return instance.user.get_full_name()
+
+    class Meta:
+        model = Profile
+        fields = ('name', 'image', 'phone_number')

@@ -2,13 +2,55 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 
+from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack
+
+
+class DeliverySerializer(serializers.HyperlinkedModelSerializer):
+    """
+    Only allows undelivered goods delivery
+    """
+    delivery_id = serializers.SerializerMethodField()
+    agent = serializers.SerializerMethodField()
+    doctor = serializers.SerializerMethodField()
+
+    def get_delivery_id(self, instance):
+        return instance.get_id()
+
+    def get_agent(self, instance):
+        return PublicProfileSerializer(
+            instance=instance.delivery_agent.user.profile,
+            context=self.context
+        ).data
+
+    def get_doctor(self, instance):
+        return PublicProfileSerializer(
+            instance=instance.doctor.user.profile,
+            context=self.context
+        ).data
+
+    class Meta:
+        model = Delivery
+        fields = [
+            'url', 'delivery_id', 'order',
+            # 'code',
+            'created_at', 'agent',
+            'delivery_medicine', 'instruction',
+            'delivery_agent', 'doctor'
+        ]
+        extra_kwargs = {
+            'url': {'view_name': 'orders:delivery-detail'},
+            'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
+            # 'code': {'read_only': True},
+            'delivery_agent': {'view_name': 'users:agent-detail', 'write_only': True},
+        }
 
 
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
     order_id = serializers.SerializerMethodField()
     is_delivered = serializers.SerializerMethodField()
     is_approved = serializers.SerializerMethodField()
+    delivery = DeliverySerializer(read_only=True)
 
     def get_order_id(self, instance):
         return instance.get_id()
@@ -24,31 +66,12 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
         fields = [
             'url', 'order_id', 'user', 'national_id', 'date_of_depletion',
             'reach_out_phone_number', 'longitude', 'latitude',
-            'address', 'is_delivered', 'is_approved', 'created_at', 'updated_at'
+            'address', 'is_delivered', 'is_approved', 'delivery', 'created_at', 'updated_at'
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:order-detail', 'read_only': True},
-            'user': {'view_name': 'users:user-detail', 'read_only': True}
-        }
-
-
-class DeliverySerializer(serializers.HyperlinkedModelSerializer):
-    """
-    Only allows undelivered goods delivery
-    """
-
-    class Meta:
-        model = Delivery
-        fields = [
-            'url', 'order', 'code', 'created_at',
-            'delivery_medicine', 'instruction',
-            'delivery_agent'
-        ]
-        extra_kwargs = {
-            'url': {'view_name': 'orders:delivery-detail'},
-            'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
-            'code': {'read_only': True},
-            'delivery_agent': {'view_name': 'users:agent-detail'},
+            'user': {'view_name': 'users:user-detail', 'read_only': True},
+            'delivery': {'view_name': 'orders:delivery-detail', 'read_only': True},
         }
 
 
