@@ -82,3 +82,29 @@ class DeliveryFeedBack(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class AgentTrip(models.Model):
+    delivery = models.OneToOneField(Delivery, on_delete=models.CASCADE, related_name='trip')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    longitude = models.DecimalField(max_digits=22, decimal_places=16)
+    latitude = models.DecimalField(max_digits=22, decimal_places=16)
+
+    @property
+    def status(self):
+        if DeliveryFeedBack.objects.filter(delivery=self.delivery):
+            return "finished"
+        else:
+            return "in_progress"
+
+    @property
+    def time_reached(self):
+        if self.status == 'finished':
+            return DeliveryFeedBack.objects.get(delivery=self.delivery).created_at
+
+    def get_id(self):
+        return f"KHMIS-DDTP-{self.created_at.year}-{self.id}"
+
+    class Meta:
+        ordering = ['-created_at']

@@ -3,7 +3,56 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 
 from users.serializers import PublicProfileSerializer
-from .models import Order, Delivery, DeliveryFeedBack
+from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
+
+
+class AgentTripSerializer(serializers.HyperlinkedModelSerializer):
+    current_location = serializers.SerializerMethodField()
+    destination = serializers.SerializerMethodField()
+    agent = serializers.SerializerMethodField()
+    trip_id = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, instance):
+        return instance.status
+
+    def get_trip_id(self, instance):
+        return instance.get_id()
+
+    def get_agent(self, instance):
+        return PublicProfileSerializer(
+            instance=instance.delivery.delivery_agent.user.profile,
+            context=self.context
+        ).data
+
+    def get_current_location(self, instance):
+        return {
+            "latitude": instance.latitude,
+            "longitude": instance.longitude
+        }
+
+    def get_destination(self, instance):
+        return {
+            "latitude": instance.delivery.order.latitude,
+            "longitude": instance.delivery.order.longitude
+        }
+
+    class Meta:
+        model = AgentTrip
+        fields = (
+            'url', 'trip_id', 'delivery', 'status', 'current_location',
+            'latitude', 'longitude',
+            'destination', 'agent', 'created_at', 'updated_at'
+        )
+        extra_kwargs = {
+            'delivery': {
+                'view_name': 'orders:delivery-detail',
+                'queryset': Delivery.objects.filter(feedback__isnull=True)
+            },
+            'url': {'view_name': 'orders:trip-detail'},
+            'latitude': {'write_only': True},
+            'longitude': {'write_only': True},
+        }
 
 
 class DeliverySerializer(serializers.HyperlinkedModelSerializer):
@@ -11,8 +60,9 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     Only allows undelivered goods delivery
     """
     delivery_id = serializers.SerializerMethodField()
-    agent = serializers.SerializerMethodField()
     doctor = serializers.SerializerMethodField()
+    agent = serializers.SerializerMethodField()
+    trip = AgentTripSerializer(read_only=True)
 
     def get_delivery_id(self, instance):
         return instance.get_id()
@@ -32,7 +82,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Delivery
         fields = [
-            'url', 'delivery_id', 'order',
+            'url', 'delivery_id', 'order', 'trip',
             # 'code',
             'created_at', 'agent',
             'delivery_medicine', 'instruction',

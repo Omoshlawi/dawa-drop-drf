@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from orders.models import Order, Delivery, DeliveryFeedBack
+from orders.models import Order, Delivery, DeliveryFeedBack, AgentTrip
 
 
 # Register your models here.
@@ -27,3 +27,8 @@ class DeliveryFeedBackAdmin(admin.ModelAdmin):
     list_display = (
         'delivery', 'review', 'rating', 'created_at'
     )
+
+
+@admin.register(AgentTrip)
+class AgentTripAdmin(admin.ModelAdmin):
+    list_display = ('delivery', 'created_at', 'updated_at', 'longitude', 'latitude')
