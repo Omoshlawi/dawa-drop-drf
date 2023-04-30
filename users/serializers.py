@@ -179,27 +179,23 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
-    next_of_keen = nested_serializer.NestedHyperlinkedIdentityField(
-        view_name='users:next-of-keen-detail',
-        parent_lookup_kwargs={'patient_pk': 'patient__pk'},
-        many=True, read_only=True
-    )
+    next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
 
     def to_representation(self, instance):
         _dict = super().to_representation(instance)
-        next_of_keen_urls = _dict.pop("next_of_keen")
-        next_of_keen_obj = {
+        nok = _dict.pop("next_of_keen")
+        nok_obj = {
             'next_of_keen': {
-                'count': len(next_of_keen_urls),
-                'next_of_keens': reverse(
+                'count': len(nok),
+                'url': reverse(
                     viewname='users:next-of-keen-list',
                     args=[instance.id],
                     request=self.context.get('request')
                 ),
-                'urls': next_of_keen_urls
+                'list': nok
             }
         }
-        _dict.update(next_of_keen_obj)
+        _dict.update(nok_obj)
         return _dict
 
     class Meta:
