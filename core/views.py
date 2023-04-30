@@ -18,6 +18,8 @@ class ApiRootView(APIView):
             "doctors_url": reverse.reverse_lazy('users:doctor-list', request=request),
             "patients_url": reverse.reverse_lazy('users:patient-list', request=request),
             "clinics_url": reverse.reverse_lazy('core:clinic-list', request=request),
+            "award_programs_url": reverse.reverse_lazy('awards:program-list', request=request),
+            "reward_url": reverse.reverse_lazy('awards:reward-list', request=request),
             "delivery_modes_url": reverse.reverse_lazy('core:mode-list', request=request),
             "orders_url": reverse.reverse_lazy('orders:order-list', request=request),
             "feedback_url": reverse.reverse_lazy('orders:feedback-list', request=request),
