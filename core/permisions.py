@@ -78,3 +78,45 @@ class IsPatient(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return request.user and request.user.profile.user_type == 'patient'
+
+
+class IsAgentOrDoctor(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and (
+                request.user.profile.user_type == 'doctor' or
+                request.user.profile.user_type == 'agent'
+        )
+
+    def has_object_permission(self, request, view, obj):
+        return request.user and (
+                request.user.profile.user_type == 'doctor' or
+                request.user.profile.user_type == 'agent'
+        )
+
+
+class IsAgentOrPatient(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and (
+                request.user.profile.user_type == 'patient' or
+                request.user.profile.user_type == 'agent'
+        )
+
+    def has_object_permission(self, request, view, obj):
+        return request.user and (
+                request.user.profile.user_type == 'patient' or
+                request.user.profile.user_type == 'agent'
+        )
+
+
+class IsDoctorOrPatient(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and (
+                request.user.profile.user_type == 'patient' or
+                request.user.profile.user_type == 'doctor'
+        )
+
+    def has_object_permission(self, request, view, obj):
+        return request.user and (
+                request.user.profile.user_type == 'patient' or
+                request.user.profile.user_type == 'doctor'
+        )

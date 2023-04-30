@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
-
+from . import mixin
 from users.serializers import (
     UserSerializer, UserCredentialSerializer,
     UserRegistrationSerializer, UserLoginSerializer,
@@ -15,7 +15,12 @@ from users.serializers import (
 )
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(
+    viewsets.ReadOnlyModelViewSet,
+    mixin.DoctorsMixin,
+    mixin.PatientsMixin,
+    mixin.AgentsMixin
+):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
