@@ -9,7 +9,7 @@ from rest_framework import permissions
 
 from users.serializers import (
     UserProfileSerializer, UserLoginSerializer,
-    UserCredentialSerializer, UserRegistrationSerializer, UserInformationViewSerializer
+    UserCredentialSerializer, UserRegistrationSerializer, UserInformationViewSerializer, ProfileSerializer
 )
 
 
@@ -152,6 +152,23 @@ class ProfileMixin:
     )
     def profile(self, request, *args, **kwargs):
         user = request.user
+        serializer = self.get_serializer(data=request.data, instance=user)
+        if request.method == 'PUT':
+            if serializer.is_valid(raise_exception=True):
+                user = serializer.save()
+        return Response(self.get_serializer(instance=user).data)
+
+    @action(
+        methods=['put', 'get'],
+        description='User profile',
+        detail=True,
+        permission_classes=[
+            permissions.IsAuthenticated
+        ],
+        serializer_class=ProfileSerializer
+    )
+    def profile_detail(self, request, *args, **kwargs):
+        user = request.user.profile
         serializer = self.get_serializer(data=request.data, instance=user)
         if request.method == 'PUT':
             if serializer.is_valid(raise_exception=True):

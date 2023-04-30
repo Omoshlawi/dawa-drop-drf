@@ -274,6 +274,53 @@ class UserInformationViewSerializer(serializers.ModelSerializer):
     account_information = serializers.SerializerMethodField()
     profile_information = serializers.SerializerMethodField()
     user_type_information = serializers.SerializerMethodField()
+    account_information_edit_url = serializers.SerializerMethodField()
+    profile_information_edit_url = serializers.SerializerMethodField()
+    user_type_information_edit_url = serializers.SerializerMethodField()
+
+    # patient_next_of_keen_edit_url = serializers.SerializerMethodField()
+
+    # def get_patient_next_of_keen_edit_urls(self, instance):
+    #     if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
+    #         return reverse(
+    #             viewname="users:patient-next-of-detail",
+    #             args=[instance.patient.id],
+    #             request=self.context.get('request')
+    #         )
+
+    def get_account_information_edit_url(self, instance):
+        return reverse(
+            viewname='users:user-detail',
+            args=[instance.id],
+            request=self.context.get('request')
+        )
+
+    def get_profile_information_edit_url(self, instance):
+        return reverse(
+            viewname='users:user-profile-detail',
+            args=[instance.profile.id],
+            request=self.context.get('request')
+        )
+
+    def get_user_type_information_edit_url(self, instance):
+        if instance.profile.user_type == 'doctor' and instance.profile.has_related_user_type:
+            return reverse(
+                viewname="users:doctor-detail",
+                args=[instance.doctor.id],
+                request=self.context.get('request')
+            )
+        if instance.profile.user_type == 'agent' and instance.profile.has_related_user_type:
+            return reverse(
+                viewname="users:agent-detail",
+                args=[instance.agent.id],
+                request=self.context.get('request')
+            )
+        if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
+            return reverse(
+                viewname="users:patient-detail",
+                args=[instance.patient.id],
+                request=self.context.get('request')
+            )
 
     def get_account_information(self, instance):
         return UserSerializer(instance=instance, context=self.context).data
@@ -283,12 +330,33 @@ class UserInformationViewSerializer(serializers.ModelSerializer):
 
     def get_user_type_information(self, instance):
         if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
-            return PatientSerializer(instance=instance.patient, context=self.context).data
+            return {
+                instance.profile.user_type: PatientSerializer(
+                    instance=instance.patient,
+                    context=self.context
+                ).data
+            }
         if instance.profile.user_type == 'doctor' and instance.profile.has_related_user_type:
-            return DoctorSerializer(instance=instance.doctor, context=self.context).data
+            return {
+                instance.profile.user_type: DoctorSerializer(
+                    instance=instance.doctor,
+                    context=self.context
+                ).data
+            }
         if instance.profile.user_type == 'agent' and instance.profile.has_related_user_type:
-            return DeliverAgentSerializer(instance=instance.agent, context=self.context).data
+            return {
+                instance.profile.user_type: DeliverAgentSerializer(
+                    instance=instance.agent,
+                    context=self.context
+                ).data
+            }
+        return {self.instance.profile.user_type: None}
 
     class Meta:
         model = User
-        fields = ('account_information', 'profile_information', 'user_type_information')
+        fields = (
+            'account_information', 'profile_information',
+            'user_type_information', 'account_information_edit_url',
+            'profile_information_edit_url', 'user_type_information_edit_url',
+            # 'patient_next_of_keen_edit_url'
+        )

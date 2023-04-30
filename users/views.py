@@ -19,7 +19,7 @@ from .models import Doctor, Patient, DeliverAgent, PatientNextOfKeen
 
 
 class UserViewSet(
-    viewsets.ReadOnlyModelViewSet,
+    viewsets.ModelViewSet,
     mixin.DoctorsMixin,
     mixin.PatientsMixin,
     mixin.AgentsMixin,
