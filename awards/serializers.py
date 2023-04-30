@@ -28,3 +28,15 @@ class RewardSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'awards:reward-detail'},
             'program': {'view_name': 'awards:program-detail'},
         }
+
+    def to_representation(self, instance):
+        dictionary = super().to_representation(instance)
+        program_url = dictionary.pop("program")
+        program_obj = {
+            'program': {
+                'url': program_url,
+                'name': instance.program.name
+            }
+        }
+        dictionary.update(program_obj)
+        return dictionary

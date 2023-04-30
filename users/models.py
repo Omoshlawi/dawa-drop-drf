@@ -57,7 +57,6 @@ class Doctor(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='patient')
     patient_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    next_of_keen = models.CharField(max_length=255, blank=True, null=False)
     base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
     # TODO handle the cascade wisely
     loyalty_program = models.ForeignKey(
@@ -108,6 +107,15 @@ class DeliverAgent(models.Model):
         )
         DeliverAgent.objects.delete(id=self.id)
         return doctor
+
+
+class PatientNextOfKeen(models.Model):
+    patient = models.ForeignKey(Patient, related_name='next_of_keen', on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=100)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    phone_number = PhoneNumberField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
 
 @receiver(post_save, sender=User)

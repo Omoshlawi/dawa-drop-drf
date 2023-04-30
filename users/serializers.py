@@ -123,7 +123,8 @@ class DoctorSerializer(serializers.ModelSerializer):
         fields = ('doctor_number', 'hiv_clinic', 'created_at', 'updated_at')
         extra_kwargs = {
             'doctor_number': {'read_only': True},
-            'url': {'view_name': 'users:doctor-list'},
+            'url': {'view_name': 'users:doctor-detail'},
+            'hiv_clinic': {'view_name': 'core:clinic-detail'},
 
         }
 
@@ -131,10 +132,14 @@ class DoctorSerializer(serializers.ModelSerializer):
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Patient
-        fields = ('url', 'patient_number', 'next_of_keen', 'base_clinic', 'created_at', 'updated_at')
+        fields = (
+            'url', 'patient_number', 'next_of_keen',
+            'base_clinic', 'created_at', 'updated_at'
+        )
         extra_kwargs = {
             'patient_number': {'read_only': True},
-            'url': {'view_name': 'users:patient-list'},
+            'url': {'view_name': 'users:patient-detail'},
+            'base_clinic': {'view_name': 'core:clinic-detail'},
 
         }
 
