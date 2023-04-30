@@ -3,7 +3,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
-from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES
+
+from core.models import HIVClinic
+from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen
 
 
 class UserCredentialSerializer(serializers.Serializer):
@@ -108,58 +110,93 @@ class ProfileSerializer(serializers.ModelSerializer):
         }
 
 
+class PublicProfileSerializer(serializers.HyperlinkedModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, instance):
+        return instance.user.get_full_name()
+
+    class Meta:
+        model = Profile
+        fields = ('name', 'image', 'phone_number')
+
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name="users:user-detail")
-    is_staff = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'first_name', 'last_name', 'is_staff']
+        fields = ['url', 'email']
+
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        profile = PublicProfileSerializer(instance=instance.profile, context=self.context).data
+        _dict.update(profile)
+        return _dict
 
 
 class DoctorSerializer(serializers.ModelSerializer):
+    hiv_clinic = serializers.HyperlinkedRelatedField(
+        view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
+    )
+
     class Meta:
         model = Doctor
-        fields = ('doctor_number', 'hiv_clinic', 'created_at', 'updated_at')
+        fields = ('doctor_number',
+                  'hiv_clinic',
+                  'created_at', 'updated_at')
         extra_kwargs = {
             'doctor_number': {'read_only': True},
             'url': {'view_name': 'users:doctor-detail'},
-            'hiv_clinic': {'view_name': 'core:clinic-detail'},
+            # 'hiv_clinic': {'view_name': 'core:clinic-detail'}
 
         }
 
 
-class PatientSerializer(serializers.HyperlinkedModelSerializer):
+class PatientNextOfKeenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientNextOfKeen
+        fields = ('full_name', 'address', 'phone_number', 'created_at', 'updated_at')
+
+
+class PatientSerializer(serializers.ModelSerializer):
+    base_clinic = serializers.HyperlinkedRelatedField(
+        view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
+    )
+
     class Meta:
         model = Patient
         fields = (
-            'url', 'patient_number', 'next_of_keen',
-            'base_clinic', 'created_at', 'updated_at'
+            'patient_number', 'next_of_keen',
+            'base_clinic',
+            'created_at', 'updated_at'
         )
         extra_kwargs = {
             'patient_number': {'read_only': True},
-            'url': {'view_name': 'users:patient-detail'},
-            'base_clinic': {'view_name': 'core:clinic-detail'},
-
+            # 'base_clinic': {'view_name': 'core:clinic-detail'}
         }
 
 
 class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = DeliverAgent
-        fields = ('url', 'agent_number', 'delivery_mode', 'work_clinic', 'created_at', 'updated_at')
+        fields = ('url', 'agent_number', 'delivery_mode',
+                  'work_clinic',
+                  'created_at', 'updated_at')
         extra_kwargs = {
-            'agent_number': {'read_only': True},
             'url': {'view_name': 'users:agent-list'},
+            'agent_number': {'read_only': True},
+            'delivery_mode': {'view_name': 'core:mode-detail'},
+            'work_clinic': {'view_name': 'core:clinic-detail'}
         }
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     is_staff = serializers.BooleanField(read_only=True)
     profile = ProfileSerializer()
-    agent = DeliverAgentSerializer()
-    doctor = DoctorSerializer()
-    patient = PatientSerializer()
+    agent = DeliverAgentSerializer(required=False)
+    doctor = DoctorSerializer(required=False)
+    patient = PatientSerializer(required=False)
     username = serializers.CharField(read_only=True)
     email = serializers.EmailField(read_only=True)
 
@@ -193,14 +230,3 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 setattr(patient, key, value)
             patient.save()
         return instance
-
-
-class PublicProfileSerializer(serializers.HyperlinkedModelSerializer):
-    name = serializers.SerializerMethodField()
-
-    def get_name(self, instance):
-        return instance.user.get_full_name()
-
-    class Meta:
-        model = Profile
-        fields = ('name', 'image', 'phone_number')

@@ -92,7 +92,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'orders:delivery-detail'},
             'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
             # 'code': {'read_only': True},
-            'delivery_agent': {'view_name': 'users:agent-detail', 'write_only': True},
+            'delivery_agent': {'view_name': 'users:user-agent-detail', 'write_only': True},
         }
 
 
