@@ -42,6 +42,15 @@ class Profile(models.Model):
     def __str__(self) -> str:
         return f"{self.user.username}'s Profile"
 
+    @property
+    def has_related_user_type(self) -> bool:
+        if self.user_type == 'patient':
+            return bool(Patient.objects.filter(user=self.user))
+        if self.user_type == 'doctor':
+            return bool(Doctor.objects.filter(user=self.user))
+        if self.user_type == 'agent':
+            return bool(DeliverAgent.objects.filter(user=self.user))
+
 
 class Doctor(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='doctor')

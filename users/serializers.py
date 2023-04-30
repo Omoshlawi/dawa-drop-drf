@@ -124,16 +124,18 @@ class PublicProfileSerializer(serializers.HyperlinkedModelSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name="users:user-detail")
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, instance):
+        return instance.get_full_name()
 
     class Meta:
         model = User
-        fields = ['url', 'email']
-
-    def to_representation(self, instance):
-        _dict = super().to_representation(instance)
-        profile = PublicProfileSerializer(instance=instance.profile, context=self.context).data
-        _dict.update(profile)
-        return _dict
+        fields = ['url', 'email', 'name', 'first_name', 'last_name']
+        extra_kwargs = {
+            'first_name': {'write_only': True},
+            'last_name': {'write_only': True},
+        }
 
 
 class DoctorSerializer(serializers.ModelSerializer):
@@ -266,3 +268,27 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
                 setattr(patient, key, value)
             patient.save()
         return instance
+
+
+class UserInformationViewSerializer(serializers.ModelSerializer):
+    account_information = serializers.SerializerMethodField()
+    profile_information = serializers.SerializerMethodField()
+    user_type_information = serializers.SerializerMethodField()
+
+    def get_account_information(self, instance):
+        return UserSerializer(instance=instance, context=self.context).data
+
+    def get_profile_information(self, instance):
+        return ProfileSerializer(instance=instance.profile, context=self.context).data
+
+    def get_user_type_information(self, instance):
+        if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
+            return PatientSerializer(instance=instance.patient, context=self.context).data
+        if instance.profile.user_type == 'doctor' and instance.profile.has_related_user_type:
+            return DoctorSerializer(instance=instance.doctor, context=self.context).data
+        if instance.profile.user_type == 'agent' and instance.profile.has_related_user_type:
+            return DeliverAgentSerializer(instance=instance.agent, context=self.context).data
+
+    class Meta:
+        model = User
+        fields = ('account_information', 'profile_information', 'user_type_information')
