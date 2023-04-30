@@ -158,11 +158,14 @@ class DoctorSerializer(serializers.ModelSerializer):
 
 
 class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
-    url = nested_serializer.NestedHyperlinkedIdentityField(
-        view_name='users:next-of-keen-detail',
-        parent_lookup_kwargs={'patient_pk': 'patient__pk'},
-        many=True, read_only=True
-    )
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, instance):
+        return reverse(
+            viewname='users:next-of-keen-detail',
+            args=[instance.patient.id, instance.id],
+            request=self.context.get('request')
+        )
 
     class Meta:
         model = PatientNextOfKeen
