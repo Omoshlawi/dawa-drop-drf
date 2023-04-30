@@ -13,6 +13,10 @@ class LoyaltyProgram(models.Model):
                                      help_text="Indicator if it can be assign to new patients by default")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def members(self):
+        return self.patients.all()
+
     def __str__(self):
         return self.name
 
@@ -21,6 +25,7 @@ class LoyaltyProgram(models.Model):
 
 
 class Reward(models.Model):
+    name = models.CharField(max_length=255, help_text="Name of the program reward")
     program = models.ForeignKey(LoyaltyProgram, related_name='rewards', on_delete=models.CASCADE)
     description = models.TextField()
     point_value = models.PositiveIntegerField(help_text='Number of points needed to redeem the reward')
@@ -32,7 +37,7 @@ class Reward(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.program.name}'s Reward"
+        return self.name
 
     class Meta:
         ordering = ['-created_at']
