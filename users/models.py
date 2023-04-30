@@ -8,6 +8,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
 
+from awards.models import Reward, LoyaltyProgram
 from core.models import HIVClinic, DeliveryMode
 
 # Create your models here.
@@ -58,11 +59,26 @@ class Patient(models.Model):
     patient_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     next_of_keen = models.CharField(max_length=255, blank=True, null=False)
     base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
+    # TODO handle the cascade wisely
+    loyalty_program = models.ForeignKey(
+        LoyaltyProgram,
+        on_delete=models.CASCADE,
+        related_name='patients',
+        null=True,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"Patient {self.user.get_full_name()}"
+
+
+class Redemption(models.Model):
+    patient = models.ForeignKey(Patient, related_name='redemptions', on_delete=models.CASCADE)
+    points_redeemed = models.PositiveIntegerField()
+    reward = models.ForeignKey(Reward, related_name='redemptions', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class DeliverAgent(models.Model):

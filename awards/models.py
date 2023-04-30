@@ -1,7 +1,5 @@
 from django.db import models
 
-from users.models import Patient
-
 
 # Create your models here.
 
@@ -20,8 +18,3 @@ class Reward(models.Model):
                                                   help_text='Maximum number of times this reward can be redeemed')
 
 
-class Redemption(models.Model):
-    patient = models.ForeignKey(Patient, related_name='redemptions', on_delete=models.CASCADE)
-    points_redeemed = models.PositiveIntegerField()
-    reward = models.ForeignKey(Reward, related_name='redemptions', on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)

@@ -78,6 +78,8 @@ class DeliveryFeedBack(models.Model):
             (5, '5')
         )
     )
+    points_awarded = models.PositiveIntegerField(default=0)
+    # awarded during creation
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
