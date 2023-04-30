@@ -3,7 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
-
+from rest_framework.reverse import reverse
+from rest_framework_nested import serializers as nested_serializer
 from core.models import HIVClinic
 from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen
 
@@ -142,10 +143,13 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ('doctor_number',
-                  'hiv_clinic',
-                  'created_at', 'updated_at')
+        fields = (
+            'url',
+            'doctor_number',
+            'hiv_clinic',
+            'created_at', 'updated_at')
         extra_kwargs = {
+            'url': {'view_name': 'users:doctor-detail'},
             'doctor_number': {'read_only': True},
             'url': {'view_name': 'users:doctor-detail'},
             # 'hiv_clinic': {'view_name': 'core:clinic-detail'}
@@ -153,26 +157,58 @@ class DoctorSerializer(serializers.ModelSerializer):
         }
 
 
-class PatientNextOfKeenSerializer(serializers.ModelSerializer):
+class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
+    url = nested_serializer.NestedHyperlinkedIdentityField(
+        view_name='users:next-of-keen-detail',
+        parent_lookup_kwargs={'patient_pk': 'patient__pk'},
+        many=True, read_only=True
+    )
+
     class Meta:
         model = PatientNextOfKeen
-        fields = ('full_name', 'address', 'phone_number', 'created_at', 'updated_at')
+        fields = ('url', 'full_name', 'address', 'phone_number', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'url': {'view_name': 'users:next-of-keen-detail'},
+        }
 
 
-class PatientSerializer(serializers.ModelSerializer):
+class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
-    next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
+    next_of_keen = nested_serializer.NestedHyperlinkedIdentityField(
+        view_name='users:next-of-keen-detail',
+        parent_lookup_kwargs={'patient_pk': 'patient__pk'},
+        many=True, read_only=True
+    )
+
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        next_of_keen_urls = _dict.pop("next_of_keen")
+        next_of_keen_obj = {
+            'next_of_keen': {
+                'count': len(next_of_keen_urls),
+                'next_of_keens': reverse(
+                    viewname='users:next-of-keen-list',
+                    args=[instance.id],
+                    request=self.context.get('request')
+                ),
+                'urls': next_of_keen_urls
+            }
+        }
+        _dict.update(next_of_keen_obj)
+        return _dict
 
     class Meta:
         model = Patient
         fields = (
+            'url',
             'patient_number', 'next_of_keen',
             'base_clinic',
             'created_at', 'updated_at'
         )
         extra_kwargs = {
+            'url': {'view_name': 'users:patient-detail'},
             'patient_number': {'read_only': True},
             # 'base_clinic': {'view_name': 'core:clinic-detail'}
         }
@@ -185,7 +221,7 @@ class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
                   'work_clinic',
                   'created_at', 'updated_at')
         extra_kwargs = {
-            'url': {'view_name': 'users:agent-list'},
+            'url': {'view_name': 'users:agent-detail'},
             'agent_number': {'read_only': True},
             'delivery_mode': {'view_name': 'core:mode-detail'},
             'work_clinic': {'view_name': 'core:clinic-detail'}

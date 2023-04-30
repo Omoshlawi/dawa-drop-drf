@@ -7,12 +7,15 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
+from rest_framework import permissions
+from core import permisions as custom_permissions
 from . import mixin
 from users.serializers import (
     UserSerializer, UserCredentialSerializer,
     UserRegistrationSerializer, UserLoginSerializer,
-    UserProfileSerializer
+    UserProfileSerializer, DoctorSerializer, PatientSerializer, DeliverAgentSerializer, PatientNextOfKeenSerializer
 )
+from .models import Doctor, Patient, DeliverAgent, PatientNextOfKeen
 
 
 class UserViewSet(
@@ -127,3 +130,34 @@ class UserViewSet(
     def get_user_by_token(self, request, *args, **kwargs):
         user = request.user
         return Response(self.get_serializer(instance=user).data)
+
+
+class DoctorsViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Doctor.objects.all()
+    serializer_class = DoctorSerializer
+
+
+class PatientViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+
+
+class DeliverAgentViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = DeliverAgent.objects.all()
+    serializer_class = DeliverAgentSerializer
+
+
+class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsDoctorOrPatient
+    ]
+    serializer_class = PatientNextOfKeenSerializer
+
+    def get_queryset(self):
+        if self.request.user.profile.user_type == 'doctor':
+            return PatientNextOfKeen.objects.all()
+        return PatientNextOfKeen.objects.filter(patient=self.request.user.patient)
