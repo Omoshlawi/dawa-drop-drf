@@ -227,7 +227,7 @@ class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
     is_staff = serializers.BooleanField(read_only=True)
     profile = ProfileSerializer()
     agent = DeliverAgentSerializer(required=False)
