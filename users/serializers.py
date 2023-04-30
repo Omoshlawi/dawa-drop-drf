@@ -163,6 +163,7 @@ class PatientSerializer(serializers.ModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
+    next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
 
     class Meta:
         model = Patient
