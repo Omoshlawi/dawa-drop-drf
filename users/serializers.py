@@ -1,10 +1,13 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import EmailValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
-
+from rest_framework.reverse import reverse
+from rest_framework_nested import serializers as nested_serializer
 from core.models import HIVClinic
+from core.serializers import HIVClinicSerializer
 from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen
 
 
@@ -101,12 +104,13 @@ class UserLoginSerializer(serializers.Serializer):
         pass
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Profile
-        fields = ('gender', 'image', 'phone_number', 'address', 'user_type')
+        fields = ('url', 'gender', 'image', 'phone_number', 'address', 'user_type')
         extra_kwargs = {
-            'user_type': {'read_only': True}
+            'user_type': {'read_only': True},
+            'url': {'view_name': 'users:user-profile-detail'},
         }
 
 
@@ -123,16 +127,25 @@ class PublicProfileSerializer(serializers.HyperlinkedModelSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name="users:user-detail")
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, instance):
+        return instance.get_full_name()
+
+    def validate_email(self, email):
+        # validator = EmailValidator('Enter a valid email address.')
+        # validator(email)
+        if User.objects.filter(email=email).exclude(username=self.instance.username).exists():
+            raise serializers.ValidationError('User With That Email Already Exists')
+        return email
 
     class Meta:
         model = User
-        fields = ['url', 'email']
-
-    def to_representation(self, instance):
-        _dict = super().to_representation(instance)
-        profile = PublicProfileSerializer(instance=instance.profile, context=self.context).data
-        _dict.update(profile)
-        return _dict
+        fields = ['url', 'email', 'name', 'first_name', 'last_name']
+        # extra_kwargs = {
+        #     'first_name': {'write_only': True},
+        #     'last_name': {'write_only': True},
+        # }
 
 
 class DoctorSerializer(serializers.ModelSerializer):
@@ -140,12 +153,27 @@ class DoctorSerializer(serializers.ModelSerializer):
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
 
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        base_clinic_url = _dict.pop("hiv_clinic")
+        base_clinic_obj = {
+            'hiv_clinic': HIVClinicSerializer(
+                instance=instance.hiv_clinic,
+                context=self.context
+            ).data
+        }
+        _dict.update(base_clinic_obj)
+        return _dict
+
     class Meta:
         model = Doctor
-        fields = ('doctor_number',
-                  'hiv_clinic',
-                  'created_at', 'updated_at')
+        fields = (
+            'url',
+            'doctor_number',
+            'hiv_clinic',
+            'created_at', 'updated_at')
         extra_kwargs = {
+            'url': {'view_name': 'users:doctor-detail'},
             'doctor_number': {'read_only': True},
             'url': {'view_name': 'users:doctor-detail'},
             # 'hiv_clinic': {'view_name': 'core:clinic-detail'}
@@ -153,26 +181,65 @@ class DoctorSerializer(serializers.ModelSerializer):
         }
 
 
-class PatientNextOfKeenSerializer(serializers.ModelSerializer):
+class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, instance):
+        return reverse(
+            viewname='users:next-of-keen-detail',
+            args=[instance.patient.id, instance.id],
+            request=self.context.get('request')
+        )
+
     class Meta:
         model = PatientNextOfKeen
-        fields = ('full_name', 'address', 'phone_number', 'created_at', 'updated_at')
+        fields = ('url', 'full_name', 'address', 'phone_number', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'url': {'view_name': 'users:next-of-keen-detail'},
+        }
 
 
-class PatientSerializer(serializers.ModelSerializer):
+class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
 
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        nok = _dict.pop("next_of_keen")
+        nok_obj = {
+            'next_of_keen': {
+                'count': len(nok),
+                'url': reverse(
+                    viewname='users:next-of-keen-list',
+                    args=[instance.id],
+                    request=self.context.get('request')
+                ),
+                'list': nok
+            }
+        }
+        base_clinic_url = _dict.pop("base_clinic")
+        base_clinic_obj = {
+            'base_clinic': HIVClinicSerializer(
+                instance=instance.base_clinic,
+                context=self.context
+            ).data
+        }
+        _dict.update(nok_obj)
+        _dict.update(base_clinic_obj)
+        return _dict
+
     class Meta:
         model = Patient
         fields = (
+            'url',
             'patient_number', 'next_of_keen',
             'base_clinic',
             'created_at', 'updated_at'
         )
         extra_kwargs = {
+            'url': {'view_name': 'users:patient-detail'},
             'patient_number': {'read_only': True},
             # 'base_clinic': {'view_name': 'core:clinic-detail'}
         }
@@ -185,14 +252,26 @@ class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
                   'work_clinic',
                   'created_at', 'updated_at')
         extra_kwargs = {
-            'url': {'view_name': 'users:agent-list'},
+            'url': {'view_name': 'users:agent-detail'},
             'agent_number': {'read_only': True},
             'delivery_mode': {'view_name': 'core:mode-detail'},
             'work_clinic': {'view_name': 'core:clinic-detail'}
         }
 
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        base_clinic_url = _dict.pop("work_clinic")
+        base_clinic_obj = {
+            'work_clinic': HIVClinicSerializer(
+                instance=instance.work_clinic,
+                context=self.context
+            ).data
+        }
+        _dict.update(base_clinic_obj)
+        return _dict
 
-class UserProfileSerializer(serializers.ModelSerializer):
+
+class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
     is_staff = serializers.BooleanField(read_only=True)
     profile = ProfileSerializer()
     agent = DeliverAgentSerializer(required=False)
@@ -231,3 +310,95 @@ class UserProfileSerializer(serializers.ModelSerializer):
                 setattr(patient, key, value)
             patient.save()
         return instance
+
+
+class UserInformationViewSerializer(serializers.ModelSerializer):
+    account_information = serializers.SerializerMethodField()
+    profile_information = serializers.SerializerMethodField()
+    user_type_information = serializers.SerializerMethodField()
+    account_information_edit_url = serializers.SerializerMethodField()
+    profile_information_edit_url = serializers.SerializerMethodField()
+    user_type_information_edit_url = serializers.SerializerMethodField()
+
+    # patient_next_of_keen_edit_url = serializers.SerializerMethodField()
+
+    # def get_patient_next_of_keen_edit_urls(self, instance):
+    #     if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
+    #         return reverse(
+    #             viewname="users:patient-next-of-detail",
+    #             args=[instance.patient.id],
+    #             request=self.context.get('request')
+    #         )
+
+    def get_account_information_edit_url(self, instance):
+        return reverse(
+            viewname='users:user-detail',
+            args=[instance.id],
+            request=self.context.get('request')
+        )
+
+    def get_profile_information_edit_url(self, instance):
+        return reverse(
+            viewname='users:user-profile-detail',
+            args=[instance.profile.id],
+            request=self.context.get('request')
+        )
+
+    def get_user_type_information_edit_url(self, instance):
+        if instance.profile.user_type == 'doctor' and instance.profile.has_related_user_type:
+            return reverse(
+                viewname="users:doctor-detail",
+                args=[instance.doctor.id],
+                request=self.context.get('request')
+            )
+        if instance.profile.user_type == 'agent' and instance.profile.has_related_user_type:
+            return reverse(
+                viewname="users:agent-detail",
+                args=[instance.agent.id],
+                request=self.context.get('request')
+            )
+        if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
+            return reverse(
+                viewname="users:patient-detail",
+                args=[instance.patient.id],
+                request=self.context.get('request')
+            )
+
+    def get_account_information(self, instance):
+        return UserSerializer(instance=instance, context=self.context).data
+
+    def get_profile_information(self, instance):
+        return ProfileSerializer(instance=instance.profile, context=self.context).data
+
+    def get_user_type_information(self, instance):
+        if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
+            return {
+                instance.profile.user_type: PatientSerializer(
+                    instance=instance.patient,
+                    context=self.context
+                ).data
+            }
+        if instance.profile.user_type == 'doctor' and instance.profile.has_related_user_type:
+            return {
+                instance.profile.user_type: DoctorSerializer(
+                    instance=instance.doctor,
+                    context=self.context
+                ).data
+            }
+        if instance.profile.user_type == 'agent' and instance.profile.has_related_user_type:
+            return {
+                instance.profile.user_type: DeliverAgentSerializer(
+                    instance=instance.agent,
+                    context=self.context
+                ).data
+            }
+        return {self.instance.profile.user_type: None}
+
+    class Meta:
+        model = User
+        fields = (
+            'account_information', 'profile_information',
+            'user_type_information', 'account_information_edit_url',
+            'profile_information_edit_url', 'user_type_information_edit_url',
+            # 'patient_next_of_keen_edit_url'
+        )
