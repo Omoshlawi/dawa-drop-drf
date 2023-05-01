@@ -103,7 +103,7 @@ class AuthMixin:
         if serializer.is_valid(raise_exception=True):
             user = serializer.save()
             token, created = Token.objects.get_or_create(user=user)
-            data = UserProfileSerializer(instance=user, context={'request': request}).data
+            data = UserInformationViewSerializer(instance=user, context={'request': request}).data
             data.update({'token': token.key})
             return Response(
                 data,
@@ -134,7 +134,7 @@ class AuthMixin:
                 },
                     status=400)
             token, created = Token.objects.get_or_create(user=user)
-            data = UserProfileSerializer(instance=user, context={'request': request}).data
+            data = UserInformationViewSerializer(instance=user, context={'request': request}).data
             data.update({'token': token.key})
             return Response(data)
 
@@ -182,6 +182,8 @@ class ProfileMixin:
         permission_classes=[
             permissions.IsAuthenticated
         ],
+        url_name='profile-view',
+        url_path='profile-view',
         serializer_class=UserInformationViewSerializer)
     def profile_view(self, request, *args, **kwargs):
         user = request.user

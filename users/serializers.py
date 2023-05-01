@@ -6,6 +6,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 from core.models import HIVClinic
+from core.serializers import HIVClinicSerializer
 from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen
 
 
@@ -143,6 +144,18 @@ class DoctorSerializer(serializers.ModelSerializer):
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
 
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        base_clinic_url = _dict.pop("hiv_clinic")
+        base_clinic_obj = {
+            'hiv_clinic': HIVClinicSerializer(
+                instance=instance.hiv_clinic,
+                context=self.context
+            ).data
+        }
+        _dict.update(base_clinic_obj)
+        return _dict
+
     class Meta:
         model = Doctor
         fields = (
@@ -197,7 +210,15 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
                 'list': nok
             }
         }
+        base_clinic_url = _dict.pop("base_clinic")
+        base_clinic_obj = {
+            'base_clinic': HIVClinicSerializer(
+                instance=instance.base_clinic,
+                context=self.context
+            ).data
+        }
         _dict.update(nok_obj)
+        _dict.update(base_clinic_obj)
         return _dict
 
     class Meta:
@@ -227,6 +248,18 @@ class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
             'delivery_mode': {'view_name': 'core:mode-detail'},
             'work_clinic': {'view_name': 'core:clinic-detail'}
         }
+
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        base_clinic_url = _dict.pop("work_clinic")
+        base_clinic_obj = {
+            'work_clinic': HIVClinicSerializer(
+                instance=instance.work_clinic,
+                context=self.context
+            ).data
+        }
+        _dict.update(base_clinic_obj)
+        return _dict
 
 
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
