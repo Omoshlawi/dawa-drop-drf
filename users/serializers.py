@@ -104,12 +104,13 @@ class UserLoginSerializer(serializers.Serializer):
         pass
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Profile
-        fields = ('gender', 'image', 'phone_number', 'address', 'user_type')
+        fields = ('url', 'gender', 'image', 'phone_number', 'address', 'user_type')
         extra_kwargs = {
-            'user_type': {'read_only': True}
+            'user_type': {'read_only': True},
+            'url': {'view_name': 'users:user-profile-detail'},
         }
 
 
