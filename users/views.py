@@ -28,6 +28,9 @@ class UserViewSet(
 ):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]
 
     @action(
         methods=['get'],

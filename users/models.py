@@ -132,3 +132,10 @@ def create_profile(sender, instance, created, **kwargs):
     # create profile
     if created:
         Profile.objects.create(user=instance)
+
+
+# @receiver(pre_save, sender=User)
+# def check_email(sender, instance, **kwargs):
+#     email = instance.email
+#     if sender.objects.filter(email=email).exclude(username=instance.username).exists():
+#         raise ValidationError('Email Already Exists')

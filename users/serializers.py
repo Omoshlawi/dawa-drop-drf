@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import EmailValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
@@ -130,13 +131,20 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     def get_name(self, instance):
         return instance.get_full_name()
 
+    def validate_email(self, email):
+        # validator = EmailValidator('Enter a valid email address.')
+        # validator(email)
+        if User.objects.filter(email=email).exclude(username=self.instance.username).exists():
+            raise serializers.ValidationError('User With That Email Already Exists')
+        return email
+
     class Meta:
         model = User
         fields = ['url', 'email', 'name', 'first_name', 'last_name']
-        extra_kwargs = {
-            'first_name': {'write_only': True},
-            'last_name': {'write_only': True},
-        }
+        # extra_kwargs = {
+        #     'first_name': {'write_only': True},
+        #     'last_name': {'write_only': True},
+        # }
 
 
 class DoctorSerializer(serializers.ModelSerializer):
