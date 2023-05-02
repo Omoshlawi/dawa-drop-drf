@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core.models import HIVClinic, DeliveryMode
+from core.models import HIVClinic, DeliveryMode, TransferRequest
 
 
 # Register your models here.
@@ -14,3 +14,16 @@ class HIVClinicAdmin(admin.ModelAdmin):
 @admin.register(DeliveryMode)
 class DeliveryModeAdmin(admin.ModelAdmin):
     list_display = ('mode',)
+
+
+@admin.register(TransferRequest)
+class TransferRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        'patient', 'hospital', 'reason',
+        'is_approved', 'approved_by', 'created_at',
+        'updated_at'
+    )
+
+
+class TransferRequestInline(admin.TabularInline):
+    model = TransferRequest

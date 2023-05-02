@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from core.admin import TransferRequestInline
 from users.models import Profile, Doctor, Patient, DeliverAgent, PatientNextOfKeen, Redemption, PatientProgramEnrollment
 
 
@@ -43,7 +44,8 @@ class PatientAdmin(admin.ModelAdmin):
     inlines = [
         PatientProgramEnrollmentInline,
         PatientNextOfKeenInline,
-        PatientRedemptionInline
+        PatientRedemptionInline,
+        TransferRequestInline
     ]
 
 

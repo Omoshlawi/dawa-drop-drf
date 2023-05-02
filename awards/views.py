@@ -46,13 +46,13 @@ class PatientRedemptionViewSet(viewsets.ModelViewSet):
         points_redeemed = serializer.validated_data.get("reward").point_value
         patient = get_object_or_404(Patient, id=self.kwargs['patient_pk'])
         serializer.save(patient=patient, points_redeemed=points_redeemed)
-        # todo make sure user is subscribed to programe
+        # todo make sure user is subscribed to program
 
 
 class PatientProgramEnrollmentViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
-        custom_permissions.IsPatient,
+        custom_permissions.IsDoctorOrReadOnly,
     ]
     serializer_class = PatientProgramEnrollmentSerializer
     queryset = PatientProgramEnrollment.objects.all()

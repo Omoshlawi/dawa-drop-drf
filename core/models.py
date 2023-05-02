@@ -18,6 +18,31 @@ class HIVClinic(models.Model):
         ordering = ['-created_at']
 
 
+class TransferRequest(models.Model):
+    patient = models.ForeignKey(
+        "users.Patient",
+        on_delete=models.CASCADE,
+        related_name='transfer_requests'
+    )
+    hospital = models.ForeignKey(
+        HIVClinic,
+        related_name='transfer_requests',
+        on_delete=models.CASCADE,
+        help_text="Hospital requesting to transfer to"
+    )
+    reason = models.TextField(help_text="Reason for requesting facility Transfer")
+    is_approved = models.BooleanField(default=False)
+    approved_by = models.ForeignKey(
+        'users.Doctor',
+        related_name='transfer_approvals',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+
 class DeliveryMode(models.Model):
     mode = models.CharField(unique=True, max_length=50)
 
