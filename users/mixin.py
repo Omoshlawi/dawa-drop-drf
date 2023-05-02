@@ -240,8 +240,7 @@ class LoyaltyPointsMixin:
         patient = get_object_or_404(Patient, id=kwargs['pk'], user=request.user)
         serializer = RedemptionSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        # TODO CHECK IF MAX REDEMPTION REACHED IN EITHER SERIALIZER VAL OR
-        #  HERE.ALSO CHECK IF USER EXIST IN REWARD PROGRAMME
+        # TODO CHECK IF MAX REDEMPTION REACHED IN EITHER SERIALIZER validator or here
         points_redeemed = serializer.validated_data.get("reward").point_value
         instance = serializer.save(patient=patient, points_redeemed=points_redeemed)
         data = {

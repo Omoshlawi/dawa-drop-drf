@@ -113,3 +113,12 @@ class AgentTrip(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+@receiver(post_save, sender=DeliveryFeedBack)
+def create_check_user_program(sender, instance, created, **kwargs):
+    """Check for patient point to see if he/she is eligible for moving to next programe"""
+    if created:
+        patient = instance.delivery.order.patient
+        points = patient.total_points
+#        TODO ADD ALGORITHM TO MOVE USER TO NEXT PROGRAMME OF THRESHOLD POINT IS MET

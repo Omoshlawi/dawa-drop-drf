@@ -82,6 +82,37 @@ class Patient(models.Model):
         ordering = ['-created_at']
 
     @property
+    def current_program_enrollment(self):
+        """Check if patient:
+            1. Has enrolment marked current, if multiple return 1st assumed to be latest
+            2. Is enrolled to any program but not marked current and if so marks latest current
+            3. Is not enrolled but there is a default program and if so enrolls user to it
+        :return None|PatientProgramEnrollment depending on conidtion
+        """
+        # 1
+        enrollments = self.enrollments.filter(is_current=True)
+        if enrollments.exists():
+            enrollment = enrollments.first()
+            return enrollment
+        # 2.
+        enrollments = self.enrollments.all()
+        if enrollments.exists():
+            enrollment = enrollments.first()
+            enrollment.is_current = True
+            enrollment.save()
+            return enrollment
+        # 3.
+        programs = LoyaltyProgram.objects.filter(is_default=True)
+        if programs.exists():
+            enrollment = PatientProgramEnrollment.objects.create(
+                patient=self,
+                program=programs.first(),
+                is_current=True
+            )
+            return enrollment
+        return None
+
+    @property
     def total_points(self):
         total_points = self.orders.all().aggregate(
             Sum('delivery__feedback__points_awarded')

@@ -66,6 +66,11 @@ class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
         if points < reward.point_value:
             raise ValidationError(
                 f"Insufficient points of {points}, you must have at least {reward.point_value} points")
+        enrollment = user.patient.current_program_enrollment
+        if enrollment is None:
+            raise ValidationError("You are not currently enrolled in any program to unlock the reward")
+        if enrollment.program != reward.program:
+            raise ValidationError("You are not eligible for the reward")
         return reward
 
     class Meta:
