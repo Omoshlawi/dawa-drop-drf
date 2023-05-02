@@ -7,11 +7,16 @@ from rest_framework.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
+
+from awards.serializers import RedemptionSerializer
 from core.models import HIVClinic
 from core.serializers import HIVClinicSerializer
 from orders.models import DeliveryFeedBack
-from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen, \
+from users.models import (
+    Profile, Doctor, Patient, DeliverAgent,
+    USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen,
     Redemption
+)
 
 
 class UserCredentialSerializer(serializers.Serializer):
@@ -202,52 +207,28 @@ class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.SerializerMethodField()
-    points_balance = serializers.SerializerMethodField()
-
-    def get_points_balance(self, instance):
-        return instance.patient.points_balance
-
-    def get_url(self, instance):
-        return reverse(
-            viewname='users:patient-redeem-detail',
-            request=self.context.get('request'),
-            args=[instance.patient.id, instance.id]
-        )
-
-    def validate_reward(self, reward):
-        user = self.context.get('request').user
-        points = user.patient.points_balance
-        if points < reward.point_value:
-            raise ValidationError(f"Insufficient points to redeem the reward, you point balance {points}")
-        return reward
-
-    class Meta:
-        model = Redemption
-        fields = ('url', 'patient', 'points_redeemed', 'reward', 'created_at', 'points_balance')
-        extra_kwargs = {
-            'patient': {'view_name': 'users:patient-detail', 'read_only': True},
-            'reward': {'view_name': 'awards:reward-detail'},
-            'points_redeemed': {'read_only': True}
-        }
-
-
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
-    redemptions = serializers.SerializerMethodField()
+    loyalty_points = serializers.SerializerMethodField()
 
-    def get_redemptions(self, instance):
+    # redemptions = serializers.SerializerMethodField()
+
+    def get_loyalty_points(self, instance):
+        # TODO remove the points and replace it with the balance
         return {
-            'url': reverse(
-                viewname='users:patient-redeem-list',
-                request=self.context.get('request'),
-                args=[instance.id]
-            ),
-            'list': RedemptionSerializer(
+            'points': instance.total_points,
+            'total_redeemed_points': instance.total_redemption_points,
+            'redeem_count': instance.redemptions.all().count(),
+            'balance': instance.points_balance,
+            # 'url': reverse(
+            #     viewname='users:patient-points',
+            #     request=self.context.get('request'),
+            #     args=[instance.id]
+            # ),
+            'redeem_list': RedemptionSerializer(
                 instance=instance.redemptions,
                 many=True,
                 context=self.context
@@ -284,12 +265,16 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url',
             'patient_number', 'next_of_keen',
-            'base_clinic', 'redemptions',
+            'base_clinic',
+            'loyalty_program',
+            # 'redemptions',
+            'loyalty_points',
             'created_at', 'updated_at'
         )
         extra_kwargs = {
             'url': {'view_name': 'users:patient-detail'},
             'patient_number': {'read_only': True},
+            'loyalty_program': {'view_name': 'awards:program-detail'},
             # 'base_clinic': {'view_name': 'core:clinic-detail'}
         }
 

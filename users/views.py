@@ -55,7 +55,7 @@ class DoctorsViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
 
 
-class PatientViewSet(viewsets.ModelViewSet):
+class PatientViewSet(viewsets.ModelViewSet, mixin.LoyaltyPointsMixin):
     permission_classes = [permissions.IsAuthenticated]
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
@@ -82,30 +82,3 @@ class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
         if self.request.user.profile.user_type == 'doctor':
             return PatientNextOfKeen.objects.all()
         return PatientNextOfKeen.objects.filter(patient=self.request.user.patient)
-
-
-class PatientRedemptionViewSet(viewsets.ModelViewSet):
-    permission_classes = [
-        permissions.IsAuthenticated,
-        custom_permissions.IsPatient
-    ]
-    serializer_class = RedemptionSerializer
-    # http_method_names = ['get', 'post']
-
-    def get_queryset(self):
-        return self.request.user.patient.redemptions.all()
-
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        results = response.data.pop('results')
-        points = self.request.user.patient.points_balance
-        response.data.update({'points': points})
-        response.data.update({'results': results})
-        return response
-
-    def perform_create(self, serializer):
-        # todo can check if curr user in request is the one whose pk is there in kwargs
-        points_redeemed = serializer.validated_data.get("reward").point_value
-        patient = get_object_or_404(Patient, id=self.kwargs['patient_pk'])
-        serializer.save(patient=patient, points_redeemed=points_redeemed)
-        # todo make sure user is subscribed to programe

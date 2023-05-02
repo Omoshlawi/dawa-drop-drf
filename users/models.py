@@ -114,7 +114,7 @@ class Patient(models.Model):
 
 class Redemption(models.Model):
     patient = models.ForeignKey(Patient, related_name='redemptions', on_delete=models.CASCADE)
-    points_redeemed = models.PositiveIntegerField(default=0)
+    points_redeemed = models.PositiveIntegerField()
     reward = models.ForeignKey(Reward, related_name='redemptions', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
