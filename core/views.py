@@ -19,6 +19,7 @@ class ApiRootView(APIView):
             "deliver_agents_url": reverse.reverse_lazy('users:agent-list', request=request),
             # "deliver_agents_url": reverse.reverse_lazy('users:user-agent-list', request=request),
             "patients_url": reverse.reverse_lazy('users:patient-list', request=request),
+            "enrollments_url": reverse.reverse_lazy('awards:enrollment-list', request=request),
             # "patients_url": reverse.reverse_lazy('users:user-patient-list', request=request),
             "clinics_url": reverse.reverse_lazy('core:clinic-list', request=request),
             "award_programs_url": reverse.reverse_lazy('awards:program-list', request=request),

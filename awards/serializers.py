@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 
 from awards.models import LoyaltyProgram, Reward
-from users.models import Redemption
+from users.models import Redemption, PatientProgramEnrollment
 
 
 class RewardSerializer(serializers.HyperlinkedModelSerializer):
@@ -80,4 +80,15 @@ class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
             'patient': {'view_name': 'users:patient-detail', 'read_only': True},
             'reward': {'view_name': 'awards:reward-detail'},
             'points_redeemed': {'read_only': True}
+        }
+
+
+class PatientProgramEnrollmentSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = PatientProgramEnrollment
+        fields = ('url', 'patient', 'program', 'is_current', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'url': {'view_name': 'awards:enrollment-detail'},
+            'patient': {'view_name': 'users:patient-detail'},
+            'program': {'view_name': 'awards:program-detail'},
         }

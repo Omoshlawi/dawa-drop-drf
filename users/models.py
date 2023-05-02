@@ -121,6 +121,7 @@ class PatientProgramEnrollment(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        unique_together = ['patient', 'program']
 
     def __str__(self):
         return f"{self.patient.user.get_full_name()} {self.program.name} Enrollment"

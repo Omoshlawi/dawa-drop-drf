@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
-from users.models import DeliverAgent, Patient
+
+from awards.models import LoyaltyProgram
+from users.models import DeliverAgent, Patient, PatientProgramEnrollment
 from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
 
@@ -158,9 +160,39 @@ class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         user = self.context.get('request').user
         patient = Patient.objects.get_or_create(user=user)[0]
-        # if patient.loyalty_program.all().exists():
-        #     pass
+        enrollments = patient.enrollments.filter(is_current=True)
+        if enrollments.exists():
+            enrollment = enrollments.first()
+        else:
+            enrollment = self.get_user_program_enrollment(patient)
+        if enrollment is not None:
+            validated_data.update({'points_awarded': enrollment.program.unit_point})
         code = validated_data.pop('code')
         delivery = Delivery.objects.get(code=code)
         validated_data.update({'delivery': delivery})
         return super().create(validated_data)
+
+    @staticmethod
+    def get_user_program_enrollment(patient):
+        """Check if patient:
+            1. Is enrolled to any program but not marked current and if so marks latest current
+            2. Is not enrolled but there is a default program and if so enrolls user to it
+        :return None|PatientProgramEnrollment depending on conidtion
+        """
+        # 1.
+        enrollments = patient.enrollments.all()
+        if enrollments.exists():
+            enrollment = enrollments.first()
+            enrollment.is_current = True
+            enrollment.save()
+            return enrollment
+        # 2.
+        programs = LoyaltyProgram.objects.filter(is_default=True)
+        if programs.exists():
+            enrollment = PatientProgramEnrollment.objects.create(
+                patient=patient,
+                program=programs.first(),
+                is_current=True
+            )
+            return enrollment
+        return None

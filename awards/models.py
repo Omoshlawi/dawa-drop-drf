@@ -15,7 +15,7 @@ class LoyaltyProgram(models.Model):
 
     @property
     def members(self):
-        return self.patients.all()
+        return self.enrollments.all()
 
     def __str__(self):
         return self.name

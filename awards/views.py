@@ -4,9 +4,10 @@ from rest_framework import permissions
 from rest_framework.generics import get_object_or_404
 
 from awards.models import LoyaltyProgram, Reward
-from awards.serializers import LoyaltyProgramSerializer, RewardSerializer, RedemptionSerializer
+from awards.serializers import LoyaltyProgramSerializer, RewardSerializer, RedemptionSerializer, \
+    PatientProgramEnrollmentSerializer
 from core import permisions as custom_permissions
-from users.models import Patient
+from users.models import Patient, PatientProgramEnrollment
 
 
 # Create your views here.
@@ -40,17 +41,18 @@ class PatientRedemptionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return self.request.user.patient.redemptions.all()
 
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        results = response.data.pop('results')
-        points = self.request.user.patient.points_balance
-        response.data.update({'points': points})
-        response.data.update({'results': results})
-        return response
-
     def perform_create(self, serializer):
         # todo can check if curr user in request is the one whose pk is there in kwargs
         points_redeemed = serializer.validated_data.get("reward").point_value
         patient = get_object_or_404(Patient, id=self.kwargs['patient_pk'])
         serializer.save(patient=patient, points_redeemed=points_redeemed)
         # todo make sure user is subscribed to programe
+
+
+class PatientProgramEnrollmentViewSet(viewsets.ModelViewSet):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsPatient,
+    ]
+    serializer_class = PatientProgramEnrollmentSerializer
+    queryset = PatientProgramEnrollment.objects.all()

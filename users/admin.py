@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from users.models import Profile, Doctor, Patient, DeliverAgent, PatientNextOfKeen, Redemption
+from users.models import Profile, Doctor, Patient, DeliverAgent, PatientNextOfKeen, Redemption, PatientProgramEnrollment
 
 
 # Register your models here.
@@ -28,10 +28,23 @@ class PatientNextOfKeenInline(admin.TabularInline):
     model = PatientNextOfKeen
 
 
+class PatientProgramEnrollmentInline(admin.TabularInline):
+    model = PatientProgramEnrollment
+
+
+@admin.register(PatientProgramEnrollment)
+class PatientProgramEnrollmentAdmin(admin.ModelAdmin):
+    list_display = ('patient', 'program', 'is_current', 'created_at', 'updated_at')
+
+
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
     list_display = ("user", 'patient_number', 'base_clinic', 'created_at')
-    inlines = [PatientNextOfKeenInline, PatientRedemptionInline]
+    inlines = [
+        PatientProgramEnrollmentInline,
+        PatientNextOfKeenInline,
+        PatientRedemptionInline
+    ]
 
 
 @admin.register(DeliverAgent)
