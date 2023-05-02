@@ -6,11 +6,11 @@ from phonenumber_field.modelfields import PhoneNumberField
 import secrets
 from django.utils import timezone
 
-from users.models import Doctor, DeliverAgent
+from users.models import Doctor, DeliverAgent, Patient
 
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='orders')
     national_id = models.PositiveIntegerField()
     date_of_depletion = models.DateField()
     reach_out_phone_number = PhoneNumberField(null=True, blank=True)
@@ -28,7 +28,7 @@ class Order(models.Model):
 
     @property
     def is_delivered(self):
-        return bool(DeliveryFeedBack.objects.filter(delivery__order=self))
+        return DeliveryFeedBack.objects.filter(delivery__order=self).exists()
 
     @property
     def is_approved(self):
@@ -63,7 +63,7 @@ class Delivery(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.order.user.get_full_name()}'s Delivery"
+        return f"{self.order.patient.user.get_full_name()}'s Delivery"
 
 
 class DeliveryFeedBack(models.Model):
@@ -82,6 +82,9 @@ class DeliveryFeedBack(models.Model):
     # awarded during creation
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.delivery.order.patient.user.get_full_name()}' Delivery"
+
     class Meta:
         ordering = ['-created_at']
 
@@ -95,7 +98,7 @@ class AgentTrip(models.Model):
 
     @property
     def status(self):
-        if DeliveryFeedBack.objects.filter(delivery=self.delivery):
+        if DeliveryFeedBack.objects.filter(delivery=self.delivery).exists():
             return "finished"
         else:
             return "in_progress"

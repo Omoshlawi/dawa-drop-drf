@@ -96,7 +96,10 @@ class AuthMixin:
         detail=False,
         url_name='register',
         url_path='register',
-        serializer_class=UserRegistrationSerializer
+        serializer_class=UserRegistrationSerializer,
+        permission_classes=[
+            permissions.AllowAny
+        ],
     )
     def register(self, request, *args, **kwargs):
         serializer = UserRegistrationSerializer(data=request.data, context={'request': request})
@@ -116,7 +119,10 @@ class AuthMixin:
         detail=False,
         url_path='login',
         url_name='login',
-        serializer_class=UserLoginSerializer
+        serializer_class=UserLoginSerializer,
+        permission_classes=[
+            permissions.AllowAny
+        ],
     )
     def login(self, request, *args, **kwargs):
         _serializers = UserLoginSerializer(data=request.data)

@@ -3,7 +3,7 @@ from rest_framework import routers
 from users.views import (
     UserViewSet, DeliverAgentViewSet,
     DoctorsViewSet, PatientViewSet,
-    PatientNextOfKeenViewSet
+    PatientNextOfKeenViewSet, PatientRedemptionViewSet
 )
 from rest_framework_nested import routers as nested_routers
 
@@ -15,9 +15,12 @@ router.register(prefix=r'', viewset=UserViewSet, basename='user')
 
 next_of_keen = nested_routers.NestedDefaultRouter(router, r'patients', lookup='patient')
 next_of_keen.register(prefix=r'next-of-keen', viewset=PatientNextOfKeenViewSet, basename='next-of-keen')
+redemption = nested_routers.NestedDefaultRouter(router, r'patients', lookup='patient')
+redemption.register(prefix='redemption', viewset=PatientRedemptionViewSet, basename='patient-redeem')
 
 app_name = 'users'
 urlpatterns = [
     path(r'', include(router.urls)),
-    path(r'', include(next_of_keen.urls))
+    path(r'', include(next_of_keen.urls)),
+    path(r'', include(redemption.urls))
 ]

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import EmailValidator
+from django.db.models import Sum
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
@@ -8,7 +9,9 @@ from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 from core.models import HIVClinic
 from core.serializers import HIVClinicSerializer
-from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen
+from orders.models import DeliveryFeedBack
+from users.models import Profile, Doctor, Patient, DeliverAgent, USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen, \
+    Redemption
 
 
 class UserCredentialSerializer(serializers.Serializer):
@@ -199,11 +202,57 @@ class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.SerializerMethodField()
+    points_balance = serializers.SerializerMethodField()
+
+    def get_points_balance(self, instance):
+        return instance.patient.points_balance
+
+    def get_url(self, instance):
+        return reverse(
+            viewname='users:patient-redeem-detail',
+            request=self.context.get('request'),
+            args=[instance.patient.id, instance.id]
+        )
+
+    def validate_reward(self, reward):
+        user = self.context.get('request').user
+        points = user.patient.points_balance
+        if points < reward.point_value:
+            raise ValidationError(f"Insufficient points to redeem the reward, you point balance {points}")
+        return reward
+
+    class Meta:
+        model = Redemption
+        fields = ('url', 'patient', 'points_redeemed', 'reward', 'created_at', 'points_balance')
+        extra_kwargs = {
+            'patient': {'view_name': 'users:patient-detail', 'read_only': True},
+            'reward': {'view_name': 'awards:reward-detail'},
+            'points_redeemed': {'read_only': True}
+        }
+
+
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
     )
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
+    redemptions = serializers.SerializerMethodField()
+
+    def get_redemptions(self, instance):
+        return {
+            'url': reverse(
+                viewname='users:patient-redeem-list',
+                request=self.context.get('request'),
+                args=[instance.id]
+            ),
+            'list': RedemptionSerializer(
+                instance=instance.redemptions,
+                many=True,
+                context=self.context
+            ).data
+        }
 
     def to_representation(self, instance):
         _dict = super().to_representation(instance)
@@ -235,7 +284,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url',
             'patient_number', 'next_of_keen',
-            'base_clinic',
+            'base_clinic', 'redemptions',
             'created_at', 'updated_at'
         )
         extra_kwargs = {

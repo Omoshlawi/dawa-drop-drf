@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from core import permisions as custom_permissions
-from users.models import Doctor
+from users.models import Doctor, Patient
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
 from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer, AgentTripSerializer
 
@@ -21,10 +21,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
+        return Order.objects.filter(patient__user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        patient = Patient.objects.get_or_create(user=self.request.user)[0]
+        serializer.save(patient=patient)
 
     @action(detail=False, methods=['GET'])
     def pending(self, request, *args, **kwargs):
@@ -66,7 +67,7 @@ class DeliveryFeedBackViewSet(viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        return DeliveryFeedBack.objects.filter(delivery__order__user=self.request.user)
+        return DeliveryFeedBack.objects.filter(delivery__order__patient__user=self.request.user)
 
 
 class AgentTripViewSet(viewsets.ModelViewSet):

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
-
+from users.models import DeliverAgent
 from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
 
@@ -92,7 +92,11 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'orders:delivery-detail'},
             'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
             # 'code': {'read_only': True},
-            'delivery_agent': {'view_name': 'users:agent-detail', 'write_only': True},
+            'delivery_agent': {
+                'view_name': 'users:agent-detail',
+                'write_only': True,
+                'queryset': DeliverAgent.objects.filter(is_approved=True)
+            },
         }
 
 
@@ -114,13 +118,13 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'url', 'order_id', 'user', 'national_id', 'date_of_depletion',
+            'url', 'order_id', 'patient', 'national_id', 'date_of_depletion',
             'reach_out_phone_number', 'longitude', 'latitude',
             'address', 'is_delivered', 'is_approved', 'delivery', 'created_at', 'updated_at'
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:order-detail', 'read_only': True},
-            'user': {'view_name': 'users:user-detail', 'read_only': True},
+            'patient': {'view_name': 'users:patient-detail', 'read_only': True},
             'delivery': {'view_name': 'orders:delivery-detail', 'read_only': True},
         }
 
@@ -141,7 +145,10 @@ class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
 
     def validate_code(self, attr):
         try:
-            delivery = Delivery.objects.get(code=attr, order__user=self.context.get('request').user)
+            delivery = Delivery.objects.get(
+                code=attr,
+                order__patient__user=self.context.get('request').user
+            )
             if DeliveryFeedBack.objects.filter(delivery=delivery):
                 raise ValidationError("Invalid Code, the code has been used")
             return attr

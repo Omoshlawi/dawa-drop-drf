@@ -4,6 +4,7 @@ from django.db import models
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Sum
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
@@ -42,14 +43,17 @@ class Profile(models.Model):
     def __str__(self) -> str:
         return f"{self.user.username}'s Profile"
 
+    class Meta:
+        ordering = ['-created_at']
+
     @property
     def has_related_user_type(self) -> bool:
         if self.user_type == 'patient':
-            return bool(Patient.objects.filter(user=self.user))
+            return Patient.objects.filter(user=self.user).exists()
         if self.user_type == 'doctor':
-            return bool(Doctor.objects.filter(user=self.user))
+            return Doctor.objects.filter(user=self.user).exists()
         if self.user_type == 'agent':
-            return bool(DeliverAgent.objects.filter(user=self.user))
+            return DeliverAgent.objects.filter(user=self.user).exists()
 
 
 class Doctor(models.Model):
@@ -61,6 +65,9 @@ class Doctor(models.Model):
 
     def __str__(self) -> str:
         return f"Doctor {self.user.get_full_name()}"
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class Patient(models.Model):
@@ -78,15 +85,41 @@ class Patient(models.Model):
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def total_points(self):
+        total_points = self.orders.all().aggregate(
+            Sum('delivery__feedback__points_awarded')
+        )['delivery__feedback__points_awarded__sum']
+        points = total_points if total_points else 0
+        return points
+
+    @property
+    def total_redemption_points(self):
+        redeemed_points = self.redemptions.all().aggregate(
+            Sum("points_redeemed")
+        )['points_redeemed__sum']
+        points = redeemed_points if redeemed_points else 0
+        return points
+
+    @property
+    def points_balance(self):
+        return self.total_points - self.total_redemption_points
+
     def __str__(self) -> str:
         return f"Patient {self.user.get_full_name()}"
 
 
 class Redemption(models.Model):
     patient = models.ForeignKey(Patient, related_name='redemptions', on_delete=models.CASCADE)
-    points_redeemed = models.PositiveIntegerField()
+    points_redeemed = models.PositiveIntegerField(default=0)
     reward = models.ForeignKey(Reward, related_name='redemptions', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class DeliverAgent(models.Model):
@@ -97,6 +130,9 @@ class DeliverAgent(models.Model):
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self) -> str:
         return f"Agent {self.user.get_full_name()}"
@@ -126,13 +162,15 @@ class PatientNextOfKeen(models.Model):
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
     # create profile
     if created:
         Profile.objects.create(user=instance)
-
 
 # @receiver(pre_save, sender=User)
 # def check_email(sender, instance, **kwargs):
