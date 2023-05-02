@@ -221,7 +221,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'total': instance.total_points,
             'total_redeemed_points': instance.total_redemption_points,
             'redeem_count': instance.redemptions.all().count(),
-            'points': instance.points_balance,
+            'redeemable_points': instance.points_balance,
             'points_url': reverse(
                 viewname='users:patient-points',
                 request=self.context.get('request'),

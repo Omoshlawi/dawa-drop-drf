@@ -216,7 +216,7 @@ class LoyaltyPointsMixin:
             'total': patient.total_points,
             'total_redeemed_points': patient.total_redemption_points,
             'redeem_count': patient.redemptions.all().count(),
-            'points': patient.points_balance,
+            'redeemable_points': patient.points_balance,
             'redemption': RedemptionSerializer(
                 instance=patient.redemptions.all(),
                 many=True,
@@ -247,7 +247,7 @@ class LoyaltyPointsMixin:
             'total': patient.total_points,
             'total_redeemed_points': patient.total_redemption_points,
             'redeem_count': patient.redemptions.all().count(),
-            'points': patient.points_balance,
+            'redeemable_points': patient.points_balance,
             'redemption': RedemptionSerializer(instance=instance, context={'request': request}).data
         }
         return Response(data)
