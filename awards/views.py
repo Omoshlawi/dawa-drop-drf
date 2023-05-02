@@ -3,11 +3,11 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.generics import get_object_or_404
 
-from awards.models import LoyaltyProgram, Reward
+from awards.models import LoyaltyProgram, Reward, PatientProgramEnrollment
 from awards.serializers import LoyaltyProgramSerializer, RewardSerializer, RedemptionSerializer, \
     PatientProgramEnrollmentSerializer
 from core import permisions as custom_permissions
-from users.models import Patient, PatientProgramEnrollment
+from users.models import Patient
 
 
 # Create your views here.

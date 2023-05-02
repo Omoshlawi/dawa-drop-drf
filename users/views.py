@@ -17,7 +17,7 @@ from users.serializers import (
     UserProfileSerializer, DoctorSerializer, PatientSerializer, DeliverAgentSerializer, PatientNextOfKeenSerializer,
     RedemptionSerializer
 )
-from .models import Doctor, Patient, DeliverAgent, PatientNextOfKeen, Redemption
+from .models import Doctor, Patient, DeliverAgent, PatientNextOfKeen
 
 
 class UserViewSet(

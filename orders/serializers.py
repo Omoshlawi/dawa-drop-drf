@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 
 from awards.models import LoyaltyProgram
-from users.models import DeliverAgent, Patient, PatientProgramEnrollment
+from users.models import DeliverAgent, Patient
 from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
 

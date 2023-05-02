@@ -2,8 +2,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
 
-from awards.models import LoyaltyProgram, Reward
-from users.models import Redemption, PatientProgramEnrollment
+from awards.models import LoyaltyProgram, Reward, PatientProgramEnrollment, Redemption
 
 
 class RewardSerializer(serializers.HyperlinkedModelSerializer):

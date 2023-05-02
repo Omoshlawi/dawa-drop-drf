@@ -14,8 +14,8 @@ from core.serializers import HIVClinicSerializer
 from orders.models import DeliveryFeedBack
 from users.models import (
     Profile, Doctor, Patient, DeliverAgent,
-    USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen,
-    Redemption
+    USER_TYPE_CHOICES, GENDER_CHOICES, PatientNextOfKeen
+
 )
 
 

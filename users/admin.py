@@ -1,7 +1,9 @@
 from django.contrib import admin
 
+from awards.admin import PatientProgramEnrollmentInline, PatientRedemptionInline
+from awards.models import PatientProgramEnrollment
 from core.admin import TransferRequestInline
-from users.models import Profile, Doctor, Patient, DeliverAgent, PatientNextOfKeen, Redemption, PatientProgramEnrollment
+from users.models import Profile, Doctor, Patient, DeliverAgent, PatientNextOfKeen
 
 
 # Register your models here.
@@ -21,16 +23,8 @@ class DoctorAdmin(admin.ModelAdmin):
     list_display = ("user", 'doctor_number', 'hiv_clinic', 'created_at')
 
 
-class PatientRedemptionInline(admin.TabularInline):
-    model = Redemption
-
-
 class PatientNextOfKeenInline(admin.TabularInline):
     model = PatientNextOfKeen
-
-
-class PatientProgramEnrollmentInline(admin.TabularInline):
-    model = PatientProgramEnrollment
 
 
 @admin.register(PatientProgramEnrollment)

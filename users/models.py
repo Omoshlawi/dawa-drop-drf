@@ -9,7 +9,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
 
-from awards.models import Reward, LoyaltyProgram
+from awards.models import Reward, LoyaltyProgram, PatientProgramEnrollment
 from core.models import HIVClinic, DeliveryMode
 
 # Create your models here.
@@ -134,38 +134,6 @@ class Patient(models.Model):
 
     def __str__(self) -> str:
         return f"Patient {self.user.get_full_name()}"
-
-
-class PatientProgramEnrollment(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='enrollments')
-    # todo think of ondelete
-    program = models.ForeignKey(
-        LoyaltyProgram,
-        on_delete=models.CASCADE,
-        related_name='enrollments',
-        null=True,
-        blank=True
-    )
-    is_current = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-        unique_together = ['patient', 'program']
-
-    def __str__(self):
-        return f"{self.patient.user.get_full_name()} {self.program.name} Enrollment"
-
-
-class Redemption(models.Model):
-    patient = models.ForeignKey(Patient, related_name='redemptions', on_delete=models.CASCADE)
-    points_redeemed = models.PositiveIntegerField()
-    reward = models.ForeignKey(Reward, related_name='redemptions', on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
 
 
 class DeliverAgent(models.Model):
