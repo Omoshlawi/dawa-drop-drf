@@ -217,17 +217,21 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     # redemptions = serializers.SerializerMethodField()
 
     def get_loyalty_points(self, instance):
-        # TODO remove the points and replace it with the balance
         return {
-            'points': instance.total_points,
+            'total': instance.total_points,
             'total_redeemed_points': instance.total_redemption_points,
             'redeem_count': instance.redemptions.all().count(),
-            'balance': instance.points_balance,
-            # 'url': reverse(
-            #     viewname='users:patient-points',
-            #     request=self.context.get('request'),
-            #     args=[instance.id]
-            # ),
+            'points': instance.points_balance,
+            'points_url': reverse(
+                viewname='users:patient-points',
+                request=self.context.get('request'),
+                args=[instance.id]
+            ),
+            'redeem_url': reverse(
+                viewname='users:patient-redeem-points',
+                request=self.context.get('request'),
+                args=[instance.id]
+            ),
             'redeem_list': RedemptionSerializer(
                 instance=instance.redemptions,
                 many=True,
@@ -266,7 +270,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'url',
             'patient_number', 'next_of_keen',
             'base_clinic',
-            'loyalty_program',
+            # 'loyalty_program',
             # 'redemptions',
             'loyalty_points',
             'created_at', 'updated_at'
@@ -274,7 +278,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'view_name': 'users:patient-detail'},
             'patient_number': {'read_only': True},
-            'loyalty_program': {'view_name': 'awards:program-detail'},
+            # 'loyalty_program': {'view_name': 'awards:program-detail'},
             # 'base_clinic': {'view_name': 'core:clinic-detail'}
         }
 

@@ -73,15 +73,8 @@ class Doctor(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='patient')
     patient_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
     # TODO handle the cascade wisely
-    loyalty_program = models.ForeignKey(
-        LoyaltyProgram,
-        on_delete=models.CASCADE,
-        related_name='patients',
-        null=True,
-        blank=True
-    )
+    base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
@@ -110,6 +103,27 @@ class Patient(models.Model):
 
     def __str__(self) -> str:
         return f"Patient {self.user.get_full_name()}"
+
+
+class PatientProgramEnrollment(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='enrollments')
+    # todo think of ondelete
+    program = models.ForeignKey(
+        LoyaltyProgram,
+        on_delete=models.CASCADE,
+        related_name='enrollments',
+        null=True,
+        blank=True
+    )
+    is_current = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.patient.user.get_full_name()} {self.program.name} Enrollment"
 
 
 class Redemption(models.Model):

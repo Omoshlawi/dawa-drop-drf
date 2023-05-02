@@ -213,11 +213,11 @@ class LoyaltyPointsMixin:
     def points(self, request, *args, **kwargs):
         patient = get_object_or_404(Patient, id=kwargs['pk'])
         data = {
-            'points': patient.total_points,
+            'total': patient.total_points,
             'total_redeemed_points': patient.total_redemption_points,
             'redeem_count': patient.redemptions.all().count(),
-            'balance': patient.points_balance,
-            'redeption': RedemptionSerializer(
+            'points': patient.points_balance,
+            'redemption': RedemptionSerializer(
                 instance=patient.redemptions.all(),
                 many=True,
                 context={'request': request}
@@ -232,7 +232,7 @@ class LoyaltyPointsMixin:
         ],
         methods=['post'],
         url_path='redeem-points',
-        url_name='redeem',
+        url_name='redeem-points',
         detail=True,
         serializer_class=RedemptionSerializer
     )
@@ -240,14 +240,15 @@ class LoyaltyPointsMixin:
         patient = get_object_or_404(Patient, id=kwargs['pk'], user=request.user)
         serializer = RedemptionSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        # TODO CHECK IF MAX REDEMPTION REACHED IN EITHER SERIALIZER VAL OR HERE
+        # TODO CHECK IF MAX REDEMPTION REACHED IN EITHER SERIALIZER VAL OR
+        #  HERE.ALSO CHECK IF USER EXIST IN REWARD PROGRAMME
         points_redeemed = serializer.validated_data.get("reward").point_value
         instance = serializer.save(patient=patient, points_redeemed=points_redeemed)
         data = {
-            'points': patient.total_points,
+            'total': patient.total_points,
             'total_redeemed_points': patient.total_redemption_points,
             'redeem_count': patient.redemptions.all().count(),
-            'balance': patient.points_balance,
+            'points': patient.points_balance,
             'redemption': RedemptionSerializer(instance=instance, context={'request': request}).data
         }
         return Response(data)

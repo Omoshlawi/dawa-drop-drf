@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
-from users.models import DeliverAgent
+from users.models import DeliverAgent, Patient
 from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
 
@@ -149,13 +149,17 @@ class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
                 code=attr,
                 order__patient__user=self.context.get('request').user
             )
-            if DeliveryFeedBack.objects.filter(delivery=delivery):
+            if DeliveryFeedBack.objects.filter(delivery=delivery).exists():
                 raise ValidationError("Invalid Code, the code has been used")
             return attr
         except Delivery.DoesNotExist:
             raise ValidationError("Invalid code, please scan again or type manually")
 
     def create(self, validated_data):
+        user = self.context.get('request').user
+        patient = Patient.objects.get_or_create(user=user)[0]
+        # if patient.loyalty_program.all().exists():
+        #     pass
         code = validated_data.pop('code')
         delivery = Delivery.objects.get(code=code)
         validated_data.update({'delivery': delivery})
