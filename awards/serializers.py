@@ -6,12 +6,6 @@ from awards.models import LoyaltyProgram, Reward, PatientProgramEnrollment, Rede
 
 
 class RewardSerializer(serializers.HyperlinkedModelSerializer):
-    def __init__(self, *args, fields=None, **kwargs):
-        if fields:
-            # if fields argument is provided, use only those fields
-            self.Meta.fields = fields
-        super().__init__(*args, **kwargs)
-
     class Meta:
         model = Reward
         fields = ('url', 'name', 'program', 'image', 'description', 'point_value', 'max_redemptions', 'created_at')
@@ -98,7 +92,6 @@ class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
             'reward': RewardSerializer(
                 instance=instance.reward,
                 context=self.context,
-                fields=('url', 'name', 'image', 'point_value', 'program')
             ).data
         }
         _dict.update(reward_obj)

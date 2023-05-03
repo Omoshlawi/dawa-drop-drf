@@ -231,7 +231,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'current_program_enrolment': PatientProgramEnrollmentSerializer(
                 instance=instance.current_program_enrollment,
                 context=self.context
-            ).data,
+            ).data if instance.current_program_enrollment is not None else None,
             'redeem_url': reverse(
                 viewname='users:patient-redeem-points',
                 request=self.context.get('request'),

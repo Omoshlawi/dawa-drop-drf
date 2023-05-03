@@ -220,7 +220,7 @@ class LoyaltyPointsMixin:
             'current_program_enrolment': PatientProgramEnrollmentSerializer(
                 instance=patient.current_program_enrollment,
                 context={'request': request}
-            ).data,
+            ).data if patient.current_program_enrollment is not None else None,
             'redeem_list': RedemptionSerializer(
                 instance=patient.redemptions.all(),
                 many=True,
@@ -257,6 +257,10 @@ class LoyaltyPointsMixin:
                 many=True,
                 context={'request': request}
             ).data,
+            'current_program_enrolment': PatientProgramEnrollmentSerializer(
+                instance=patient.current_program_enrollment,
+                context={'request': request}
+            ).data if patient.current_program_enrollment is not None else None,
             'redemption': RedemptionSerializer(instance=instance, context={'request': request}).data
         }
         return Response(data)
