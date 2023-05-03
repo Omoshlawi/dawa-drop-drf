@@ -5,7 +5,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 
-from awards.serializers import RedemptionSerializer
+from awards.serializers import RedemptionSerializer, PatientProgramEnrollmentSerializer
 from core import permisions as custom_permissions
 from rest_framework import permissions
 
@@ -217,7 +217,11 @@ class LoyaltyPointsMixin:
             'total_redeemed_points': patient.total_redemption_points,
             'redeem_count': patient.redemptions.all().count(),
             'redeemable_points': patient.points_balance,
-            'redemption': RedemptionSerializer(
+            'current_program_enrolment': PatientProgramEnrollmentSerializer(
+                instance=patient.current_program_enrollment,
+                context={'request': request}
+            ).data,
+            'redeem_list': RedemptionSerializer(
                 instance=patient.redemptions.all(),
                 many=True,
                 context={'request': request}
@@ -248,6 +252,11 @@ class LoyaltyPointsMixin:
             'total_redeemed_points': patient.total_redemption_points,
             'redeem_count': patient.redemptions.all().count(),
             'redeemable_points': patient.points_balance,
+            'program_enrolments': PatientProgramEnrollmentSerializer(
+                instance=patient.enrollments,
+                many=True,
+                context={'request': request}
+            ).data,
             'redemption': RedemptionSerializer(instance=instance, context={'request': request}).data
         }
         return Response(data)

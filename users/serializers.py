@@ -8,7 +8,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 
-from awards.serializers import RedemptionSerializer
+from awards.serializers import RedemptionSerializer, PatientProgramEnrollmentSerializer
 from core.models import HIVClinic
 from core.serializers import HIVClinicSerializer
 from orders.models import DeliveryFeedBack
@@ -213,6 +213,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     )
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
     loyalty_points = serializers.SerializerMethodField()
+    enrollments = PatientProgramEnrollmentSerializer(many=True, read_only=True)
 
     # redemptions = serializers.SerializerMethodField()
 
@@ -227,6 +228,10 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
                 request=self.context.get('request'),
                 args=[instance.id]
             ),
+            'current_program_enrolment': PatientProgramEnrollmentSerializer(
+                instance=instance.current_program_enrollment,
+                context=self.context
+            ).data,
             'redeem_url': reverse(
                 viewname='users:patient-redeem-points',
                 request=self.context.get('request'),
@@ -270,15 +275,14 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'url',
             'patient_number', 'next_of_keen',
             'base_clinic',
-            # 'loyalty_program',
             # 'redemptions',
+            'enrollments',
             'loyalty_points',
             'created_at', 'updated_at'
         )
         extra_kwargs = {
             'url': {'view_name': 'users:patient-detail'},
             'patient_number': {'read_only': True},
-            # 'loyalty_program': {'view_name': 'awards:program-detail'},
             # 'base_clinic': {'view_name': 'core:clinic-detail'}
         }
 

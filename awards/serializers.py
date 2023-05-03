@@ -6,6 +6,12 @@ from awards.models import LoyaltyProgram, Reward, PatientProgramEnrollment, Rede
 
 
 class RewardSerializer(serializers.HyperlinkedModelSerializer):
+    def __init__(self, *args, fields=None, **kwargs):
+        if fields:
+            # if fields argument is provided, use only those fields
+            self.Meta.fields = fields
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = Reward
         fields = ('url', 'name', 'program', 'image', 'description', 'point_value', 'max_redemptions', 'created_at')
@@ -25,6 +31,19 @@ class RewardSerializer(serializers.HyperlinkedModelSerializer):
         }
         dictionary.update(program_obj)
         return dictionary
+
+
+class NestedLoyaltyProgramSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = LoyaltyProgram
+        fields = (
+            'url', 'name', 'unit_point', 'image',
+            'description', 'point_rate',
+            'is_default', 'created_at'
+        )
+        extra_kwargs = {
+            'url': {'view_name': 'awards:program-detail'}
+        }
 
 
 class LoyaltyProgramSerializer(serializers.HyperlinkedModelSerializer):
@@ -72,9 +91,23 @@ class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
             raise ValidationError("You are not eligible for the reward")
         return reward
 
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        reward_url = _dict.pop('reward')
+        reward_obj = {
+            'reward': RewardSerializer(
+                instance=instance.reward,
+                context=self.context,
+                fields=('url', 'name', 'image', 'point_value', 'program')
+            ).data
+        }
+        _dict.update(reward_obj)
+        return _dict
+
     class Meta:
         model = Redemption
         fields = (
+            'id',
             # 'url',
             'patient',
             'points_redeemed', 'reward', 'created_at',
@@ -96,3 +129,15 @@ class PatientProgramEnrollmentSerializer(serializers.HyperlinkedModelSerializer)
             'patient': {'view_name': 'users:patient-detail'},
             'program': {'view_name': 'awards:program-detail'},
         }
+
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        program_url = _dict.pop("program")
+        program_obj = {
+            'program': NestedLoyaltyProgramSerializer(
+                instance=instance.program,
+                context=self.context
+            ).data
+        }
+        _dict.update(program_obj)
+        return _dict
