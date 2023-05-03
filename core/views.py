@@ -1,10 +1,13 @@
 from rest_framework import reverse
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
+
+from users.models import Patient
 from . import permisions as custom_permissions
-from .models import HIVClinic, DeliveryMode
-from .serializers import HIVClinicSerializer, DeliveryModeSerializer
+from .models import HIVClinic, DeliveryMode, TransferRequest
+from .serializers import HIVClinicSerializer, DeliveryModeSerializer, TransferRequestSerializer
+from . import mixin
 
 
 # Create your views here.
@@ -19,6 +22,7 @@ class ApiRootView(APIView):
             "deliver_agents_url": reverse.reverse_lazy('users:agent-list', request=request),
             # "deliver_agents_url": reverse.reverse_lazy('users:user-agent-list', request=request),
             "patients_url": reverse.reverse_lazy('users:patient-list', request=request),
+            "patients_transfer_request_url": reverse.reverse_lazy('core:transfer-request-list', request=request),
             "enrollments_url": reverse.reverse_lazy('awards:enrollment-list', request=request),
             # "patients_url": reverse.reverse_lazy('users:user-patient-list', request=request),
             "clinics_url": reverse.reverse_lazy('core:clinic-list', request=request),
@@ -41,3 +45,12 @@ class DeliveryModeViewSet(viewsets.ModelViewSet):
     permission_classes = [custom_permissions.IsAdminOrReadOnly]
     queryset = DeliveryMode.objects.all()
     serializer_class = DeliveryModeSerializer
+
+
+class TransferRequestViewSet(viewsets.ModelViewSet, mixin.PatientTransferMixin):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsDoctorOrReadOnly
+    ]
+    queryset = TransferRequest.objects.all()
+    serializer_class = TransferRequestSerializer
