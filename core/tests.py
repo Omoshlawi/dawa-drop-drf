@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 from decimal import Decimal
 
-from core.models import HIVClinic, DeliveryMode
+from core.models import HealthFacility, DeliveryMode
 
 
 # Create your tests here.
@@ -20,7 +20,7 @@ class HIVClinicApiTestCase(APITestCase):
 
         # create clinics
         for i in range(3):
-            HIVClinic.objects.create(
+            HealthFacility.objects.create(
                 name=f"Clinic {i}",
                 longitude=Decimal(f"{i}.34565433"),
                 latitude=Decimal(f"{i}.098765"),
@@ -65,12 +65,12 @@ class HIVClinicApiTestCase(APITestCase):
         self.client.login(username='testadminuser', password='testpassword')
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        clinic = HIVClinic.objects.all().first()
+        clinic = HealthFacility.objects.all().first()
         self.assertEqual(clinic.name, data["name"])
 
     def test_retrieve(self):
         """Test clinic detail view"""
-        clinic = HIVClinic.objects.all().first()
+        clinic = HealthFacility.objects.all().first()
         url = reverse("core:clinic-detail", args=[clinic.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -86,25 +86,25 @@ class HIVClinicApiTestCase(APITestCase):
             'latitude': 20.00984567802,
             'address': "Sample PUT address",
         }
-        clinic = HIVClinic.objects.all().first()
+        clinic = HealthFacility.objects.all().first()
         url = reverse("core:clinic-detail", args=[clinic.id])
         self.client.login(username='testadminuser', password='testpassword')
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        update = HIVClinic.objects.get(id=clinic.id)
+        update = HealthFacility.objects.get(id=clinic.id)
         self.assertEqual(update.name, response.data["name"])
         self.assertEqual(update.address, response.data["address"])
         self.assertEqual(str(update.longitude), response.data["longitude"])
         self.assertEqual(str(update.latitude), response.data["latitude"])
 
     def test_delete(self):
-        clinic = HIVClinic.objects.all().first()
+        clinic = HealthFacility.objects.all().first()
         url = reverse("core:clinic-detail", args=[clinic.id])
         self.client.login(username='testadminuser', password='testpassword')
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(2, HIVClinic.objects.all().count())
-        self.assertTrue(HIVClinic.objects.filter(id=clinic.id).count() == 0)
+        self.assertEqual(2, HealthFacility.objects.all().count())
+        self.assertTrue(HealthFacility.objects.filter(id=clinic.id).count() == 0)
 
 
 class DeliveryModeApiTestCase(APITestCase):

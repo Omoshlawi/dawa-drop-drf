@@ -1,5 +1,3 @@
-from django.db import models
-
 # Create your models here.
 
 from django.contrib.auth.models import User
@@ -9,8 +7,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
 
-from awards.models import Reward, LoyaltyProgram, PatientProgramEnrollment
-from core.models import HIVClinic, DeliveryMode
+from awards.models import LoyaltyProgram, PatientProgramEnrollment
 
 # Create your models here.
 GENDER_CHOICES = (
@@ -59,7 +56,7 @@ class Profile(models.Model):
 class Doctor(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='doctor')
     doctor_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    hiv_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
+    hiv_clinic = models.ForeignKey("core.HealthFacility", on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
@@ -73,8 +70,17 @@ class Doctor(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='patient')
     patient_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    marital_status = models.ForeignKey(
+        "core.MaritalStatus", on_delete=models.CASCADE,
+        related_name='patients', null=True, blank=True
+    )
     # TODO handle the cascade wisely
-    base_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, null=True, blank=True)
+    base_clinic = models.ForeignKey(
+        "core.HealthFacility", on_delete=models.CASCADE,
+        null=True, blank=True, related_name='patients'
+    )
+    county_of_residence = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
@@ -139,8 +145,8 @@ class Patient(models.Model):
 class DeliverAgent(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='agent')
     agent_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    delivery_mode = models.ForeignKey(DeliveryMode, on_delete=models.CASCADE, related_name='agents')
-    work_clinic = models.ForeignKey(HIVClinic, on_delete=models.CASCADE, related_name='agents')
+    delivery_mode = models.ForeignKey("core.DeliveryMode", on_delete=models.CASCADE, related_name='agents')
+    work_clinic = models.ForeignKey("core.HealthFacility", on_delete=models.CASCADE, related_name='agents')
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
@@ -171,6 +177,7 @@ class DeliverAgent(models.Model):
 class PatientNextOfKeen(models.Model):
     patient = models.ForeignKey(Patient, related_name='next_of_keen', on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
+    relationship = models.CharField(max_length=100)
     address = models.CharField(max_length=255, null=True, blank=True)
     phone_number = PhoneNumberField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)

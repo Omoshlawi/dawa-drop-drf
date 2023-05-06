@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from core.models import HIVClinic, DeliveryMode, TransferRequest
+from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest
 
 
 
 class HIVClinicSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = HIVClinic
+        model = HealthFacility
         fields = ('url', 'name', 'longitude', 'latitude', 'address')
         extra_kwargs = {
             'url': {'view_name': 'core:clinic-detail'}
@@ -24,7 +24,7 @@ class DeliveryModeSerializer(serializers.HyperlinkedModelSerializer):
 
 class TransferRequestSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = TransferRequest
+        model = FacilityTransferRequest
         fields = (
             'url', 'patient', 'hospital', 'reason',
             'is_approved', 'approved_by', 'created_at',
@@ -40,7 +40,7 @@ class TransferRequestSerializer(serializers.HyperlinkedModelSerializer):
 
 class PatientOnlyTransferSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = TransferRequest
+        model = FacilityTransferRequest
         fields = (
             'url', 'patient', 'hospital', 'reason',
             'is_approved', 'approved_by', 'created_at',

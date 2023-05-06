@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from core.models import HIVClinic, DeliveryMode, TransferRequest
+from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest
 
 
 # Register your models here.
 
 
-@admin.register(HIVClinic)
+@admin.register(HealthFacility)
 class HIVClinicAdmin(admin.ModelAdmin):
     list_display = ('name', 'longitude', 'latitude', 'address')
 
@@ -16,7 +16,7 @@ class DeliveryModeAdmin(admin.ModelAdmin):
     list_display = ('mode',)
 
 
-@admin.register(TransferRequest)
+@admin.register(FacilityTransferRequest)
 class TransferRequestAdmin(admin.ModelAdmin):
     list_display = (
         'patient', 'hospital', 'reason',
@@ -26,4 +26,4 @@ class TransferRequestAdmin(admin.ModelAdmin):
 
 
 class TransferRequestInline(admin.TabularInline):
-    model = TransferRequest
+    model = FacilityTransferRequest

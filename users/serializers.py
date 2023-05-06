@@ -9,7 +9,7 @@ from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 
 from awards.serializers import RedemptionSerializer, PatientProgramEnrollmentSerializer
-from core.models import HIVClinic
+from core.models import HealthFacility
 from core.serializers import HIVClinicSerializer
 from orders.models import DeliveryFeedBack
 from users.models import (
@@ -158,7 +158,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class DoctorSerializer(serializers.ModelSerializer):
     hiv_clinic = serializers.HyperlinkedRelatedField(
-        view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
+        view_name='core:clinic-detail', queryset=HealthFacility.objects.all()
     )
 
     def to_representation(self, instance):
@@ -228,7 +228,7 @@ class DoctorNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
 
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
-        view_name='core:clinic-detail', queryset=HIVClinic.objects.all()
+        view_name='core:clinic-detail', queryset=HealthFacility.objects.all()
     )
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
     loyalty_points = serializers.SerializerMethodField()
