@@ -207,6 +207,25 @@ class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class DoctorNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, instance):
+        return reverse(
+            viewname='users:next-of-keen-detail',
+            args=[instance.patient.id, instance.id],
+            request=self.context.get('request')
+        )
+
+    class Meta:
+        model = PatientNextOfKeen
+        fields = ('url', 'patient', 'full_name', 'address', 'phone_number', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'url': {'view_name': 'users:next-of-keen-detail'},
+            'patient': {'view_name': 'users:patient-detail'},
+        }
+
+
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
         view_name='core:clinic-detail', queryset=HIVClinic.objects.all()

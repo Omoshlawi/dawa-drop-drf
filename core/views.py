@@ -36,7 +36,7 @@ class ApiRootView(APIView):
 
 
 class HIVClinicViewSet(viewsets.ModelViewSet):
-    permission_classes = [custom_permissions.IsAdminOrReadOnly]
+    permission_classes = [custom_permissions.IsDoctorOrReadOnly]
     queryset = HIVClinic.objects.all()
     serializer_class = HIVClinicSerializer
 

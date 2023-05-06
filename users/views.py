@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from rest_framework import viewsets
+from django.http import Http404
+from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -18,6 +19,7 @@ from users.serializers import (
     RedemptionSerializer
 )
 from .models import Doctor, Patient, DeliverAgent, PatientNextOfKeen
+from rest_framework.exceptions import PermissionDenied
 
 
 class UserViewSet(
@@ -70,15 +72,24 @@ class DeliverAgentViewSet(viewsets.ModelViewSet):
 class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
+        custom_permissions.IsPatientOrReadOnly,
         custom_permissions.IsDoctorOrPatient
     ]
     serializer_class = PatientNextOfKeenSerializer
 
     def perform_create(self, serializer):
-        patient = get_object_or_404(Patient, id=self.kwargs['patient_pk'])
+        patient = get_object_or_404(Patient, id=self.kwargs['patient_pk'], user=self.request.user)
         serializer.save(patient=patient)
 
     def get_queryset(self):
         if self.request.user.profile.user_type == 'doctor':
             return PatientNextOfKeen.objects.all()
-        return PatientNextOfKeen.objects.filter(patient=self.request.user.patient)
+        curr_patient = Patient.objects.get_or_create(
+            user=self.request.user
+        )[0]
+        patient = get_object_or_404(Patient, id=self.kwargs['patient_pk'])
+        if curr_patient != patient:
+            raise PermissionDenied(
+                detail="Warning!!Your are forbidden from accessing other patient private information",
+            )
+        return PatientNextOfKeen.objects.filter(patient=patient)

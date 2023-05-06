@@ -3,6 +3,7 @@ from rest_framework import serializers
 from core.models import HIVClinic, DeliveryMode, TransferRequest
 
 
+
 class HIVClinicSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = HIVClinic
@@ -52,3 +53,22 @@ class PatientOnlyTransferSerializer(serializers.HyperlinkedModelSerializer):
             'is_approved': {'read_only': True},
             'hospital': {'view_name': 'core:clinic-detail'},
         }
+
+    def to_representation(self, instance):
+        from users.serializers import PublicProfileSerializer
+        _dict = super().to_representation(instance=instance)
+        hospital_url = _dict.pop('hospital')
+        hospital_obj = {
+            'hospital': HIVClinicSerializer(instance=instance.hospital, context=self.context).data
+        }
+        approved_by_url = _dict.pop('approved_by')
+        approved_by_obj = {
+            'approved_by': PublicProfileSerializer(
+                instance=instance.approved_by.user.profile,
+                context=self.context
+            ).data if instance.approved_by else None
+        }
+        _dict.update(hospital_obj)
+
+        _dict.update(approved_by_obj)
+        return _dict

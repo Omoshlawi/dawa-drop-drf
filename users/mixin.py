@@ -264,3 +264,9 @@ class LoyaltyPointsMixin:
             'redemption': RedemptionSerializer(instance=instance, context={'request': request}).data
         }
         return Response(data)
+
+
+class DoctorNextOfKeenMixin:
+    @action(detail=True)
+    def next_of_keen(self, request, *args, **kwargs):
+        pass
