@@ -35,7 +35,7 @@ class HealthFacility(models.Model):
 
 class FacilityTransferRequest(models.Model):
     patient = models.ForeignKey(
-        "users.Patient",
+        "patients.Patient",
         on_delete=models.CASCADE,
         related_name='transfer_requests'
     )
@@ -48,7 +48,7 @@ class FacilityTransferRequest(models.Model):
     reason = models.TextField(help_text="Reason for requesting facility Transfer")
     is_approved = models.BooleanField(default=False)
     approved_by = models.ForeignKey(
-        'users.Doctor',
+        'doctors.Doctor',
         related_name='transfer_approvals',
         on_delete=models.CASCADE,
         null=True,

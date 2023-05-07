@@ -3,8 +3,7 @@ from rest_framework import serializers
 from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest
 
 
-
-class HIVClinicSerializer(serializers.HyperlinkedModelSerializer):
+class HealthFacilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = HealthFacility
         fields = ('url', 'name', 'longitude', 'latitude', 'address')
@@ -59,7 +58,7 @@ class PatientOnlyTransferSerializer(serializers.HyperlinkedModelSerializer):
         _dict = super().to_representation(instance=instance)
         hospital_url = _dict.pop('hospital')
         hospital_obj = {
-            'hospital': HIVClinicSerializer(instance=instance.hospital, context=self.context).data
+            'hospital': HealthFacilitySerializer(instance=instance.hospital, context=self.context).data
         }
         approved_by_url = _dict.pop('approved_by')
         approved_by_obj = {

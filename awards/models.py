@@ -44,7 +44,7 @@ class Reward(models.Model):
 
 
 class PatientProgramEnrollment(models.Model):
-    patient = models.ForeignKey("users.Patient", on_delete=models.CASCADE, related_name='enrollments')
+    patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, related_name='enrollments')
     # todo think of ondelete
     program = models.ForeignKey(
         LoyaltyProgram,
@@ -66,7 +66,7 @@ class PatientProgramEnrollment(models.Model):
 
 
 class Redemption(models.Model):
-    patient = models.ForeignKey("users.Patient", related_name='redemptions', on_delete=models.CASCADE)
+    patient = models.ForeignKey("patients.Patient", related_name='redemptions', on_delete=models.CASCADE)
     points_redeemed = models.PositiveIntegerField()
     reward = models.ForeignKey(Reward, related_name='redemptions', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

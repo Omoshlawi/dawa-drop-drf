@@ -6,7 +6,7 @@ from rest_framework import viewsets, permissions
 from users.models import Patient
 from . import permisions as custom_permissions
 from .models import HealthFacility, DeliveryMode, FacilityTransferRequest
-from .serializers import HIVClinicSerializer, DeliveryModeSerializer, TransferRequestSerializer
+from .serializers import HealthFacilitySerializer, DeliveryModeSerializer, TransferRequestSerializer
 from . import mixin
 
 
@@ -38,7 +38,7 @@ class ApiRootView(APIView):
 class HIVClinicViewSet(viewsets.ModelViewSet):
     permission_classes = [custom_permissions.IsDoctorOrReadOnly]
     queryset = HealthFacility.objects.all()
-    serializer_class = HIVClinicSerializer
+    serializer_class = HealthFacilitySerializer
 
 
 class DeliveryModeViewSet(viewsets.ModelViewSet):

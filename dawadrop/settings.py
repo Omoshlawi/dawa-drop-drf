@@ -42,9 +42,12 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'users',
+    'patients',
     'core',
     'orders',
     'awards',
+    'agents',
+    'doctors',
 ]
 
 MIDDLEWARE = [

@@ -1,16 +1,11 @@
-from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from phonenumber_field.modelfields import PhoneNumberField
-import secrets
-from django.utils import timezone
-
-from users.models import Doctor, DeliverAgent, Patient
 
 
 class Order(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='orders')
+    patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, related_name='orders')
     national_id = models.PositiveIntegerField()
     date_of_depletion = models.DateField()
     reach_out_phone_number = PhoneNumberField(null=True, blank=True)
@@ -45,13 +40,13 @@ class Delivery(models.Model):
     delivery_medicine = models.TextField(blank=True, null=True)
     instruction = models.TextField(null=True, blank=True)
     doctor = models.ForeignKey(
-        Doctor,
+        "doctors.Doctor",
         related_name='deliveries',
         on_delete=models.CASCADE
     )
     # todo Think about delete cascade
     delivery_agent = models.ForeignKey(
-        DeliverAgent,
+        "agents.DeliverAgent",
         related_name='deliveries',
         on_delete=models.CASCADE,
     )

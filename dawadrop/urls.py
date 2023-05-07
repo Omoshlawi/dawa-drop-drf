@@ -22,6 +22,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls', namespace='core')),
     path('users/', include('users.urls', namespace='users')),
+    path('patients/', include('patients.urls', namespace='patients')),
+    path('doctors/', include('doctors.urls', namespace='doctors')),
+    path('agents/', include('agents.urls', namespace='agents')),
     path('orders/', include('orders.urls', namespace='orders')),
     path('awards/', include('awards.urls', namespace='awards')),
 ]
