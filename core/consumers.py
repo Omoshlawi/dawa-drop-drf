@@ -98,7 +98,7 @@ class AsyncTripConsumer(AsyncWebsocketConsumer):
         self.id = self.scope['url_route']['kwargs']['trip_id']
         self.trip_group_name = 'Trip_%s' % self.id
         self.user = self.scope['user']
-        print(self.user)
+        # print(self.user)
 
         # Join room group
         await self.channel_layer.group_add(self.trip_group_name, self.channel_name)

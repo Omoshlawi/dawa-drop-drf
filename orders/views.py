@@ -4,7 +4,7 @@ from rest_framework import permissions
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
+from . import mixin
 from core import permisions as custom_permissions
 from users.models import Doctor, Patient
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
@@ -70,7 +70,7 @@ class DeliveryFeedBackViewSet(viewsets.ModelViewSet):
         return DeliveryFeedBack.objects.filter(delivery__order__patient__user=self.request.user)
 
 
-class AgentTripViewSet(viewsets.ModelViewSet):
+class AgentTripViewSet(viewsets.ModelViewSet, mixin.RouteMixin):
     permission_classes = [permissions.IsAuthenticated]
     queryset = AgentTrip.objects.all()
     serializer_class = AgentTripSerializer
