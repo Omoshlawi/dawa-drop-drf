@@ -29,6 +29,8 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -80,8 +82,17 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'dawadrop.wsgi.application'
-
+# WSGI_APPLICATION = 'dawadrop.wsgi.application'
+# channel conf
+ASGI_APPLICATION = "dawadrop.asgi.application"
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -103,7 +114,6 @@ else:
             'PORT': '',
         }
     }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

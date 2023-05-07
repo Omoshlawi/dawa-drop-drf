@@ -178,3 +178,23 @@ class DeliveryModeApiTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(2, DeliveryMode.objects.all().count())
         self.assertTrue(DeliveryMode.objects.filter(id=mode.id).count() == 0)
+
+
+import json
+from channels.testing import WebsocketCommunicator
+from .consumers import TripConsumer
+
+
+class TripConsumerTestCase(TestCase):
+    async def test_trip_consumer(self):
+        communicator = WebsocketCommunicator(TripConsumer.as_asgi(), "/ws/trip/1/")
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        message = {"message": "Test message"}
+        await communicator.send_json_to(message)
+
+        response = await communicator.receive_json_from()
+        self.assertEqual(response, message)
+
+        await communicator.disconnect()
