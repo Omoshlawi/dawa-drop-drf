@@ -14,7 +14,7 @@ from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 
-from core import routing
+from core import routing, auth_middleware
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dawadrop.settings')
 
@@ -25,6 +25,6 @@ application = get_asgi_application()
 application = ProtocolTypeRouter({
     "http": application,
     "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(URLRouter(routing.websocket_urlpatterns))
+        auth_middleware.TokenAuthMiddleware(URLRouter(routing.websocket_urlpatterns))
     ),
 })
