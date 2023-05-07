@@ -5,7 +5,10 @@ from channels.generic.websocket import WebsocketConsumer
 
 class TripConsumer(WebsocketConsumer):
     def connect(self):
+        # accept
         self.accept()
+        # reject
+        # self.close()
 
     def disconnect(self, close_code):
         pass
@@ -14,7 +17,7 @@ class TripConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         # message = text_data_json["message"]
         print(text_data)
-        self.send(text_data=json.dumps({"message": "message"}))
+        self.send(text_data=json.dumps(text_data_json))
 
 # import json
 # from channels.generic.websocket import AsyncWebsocketConsumer

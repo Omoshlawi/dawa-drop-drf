@@ -85,6 +85,7 @@ TEMPLATES = [
 # WSGI_APPLICATION = 'dawadrop.wsgi.application'
 # channel conf
 ASGI_APPLICATION = "dawadrop.asgi.application"
+"""Redis backend"""
 # CHANNEL_LAYERS = {
 #     "default": {
 #         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -93,6 +94,45 @@ ASGI_APPLICATION = "dawadrop.asgi.application"
 #         },
 #     },
 # }
+"""Postgresql backend"""
+# pip install asyncpg
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels.layers.DatabaseChannelLayer',
+#         'ROUTING': 'your_project.routing.channel_routing',
+#     },
+# }
+#
+# routing.py
+# from django.urls import re_path
+# from . import consumers
+#
+# channel_routing = [
+#     re_path(r'^ws/chat/(?P<room_name>[^/]+)/$', consumers.ChatConsumer.as_asgi()),
+# ]
+
+"""in memory backend"""
+# settings.py
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer",
+#     },
+# }
+#
+"""sqlite backend"""
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.DatabaseChannelLayer",
+#         "CONFIG": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": BASE_DIR / "db.sqlite3",
+#         },
+#     },
+# }
+
+
+
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
