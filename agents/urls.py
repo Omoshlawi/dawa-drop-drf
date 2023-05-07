@@ -5,7 +5,7 @@ from agents.views import DeliverAgentViewSet
 
 app_name = "agents"
 router = routers.DefaultRouter()
-router.register(prefix=r'agents', viewset=DeliverAgentViewSet, basename='agent')
+router.register(prefix=r'', viewset=DeliverAgentViewSet, basename='agent')
 
 
 urlpatterns = [

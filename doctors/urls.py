@@ -5,7 +5,7 @@ from .views import DoctorsViewSet
 
 app_name = "doctors"
 router = routers.DefaultRouter()
-router.register(prefix=r'doctors', viewset=DoctorsViewSet, basename='doctor')
+router.register(prefix=r'', viewset=DoctorsViewSet, basename='doctor')
 
 urlpatterns = [
     path(r'', include(router.urls)),

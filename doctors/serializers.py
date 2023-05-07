@@ -32,9 +32,8 @@ class DoctorSerializer(serializers.ModelSerializer):
             'hiv_clinic',
             'created_at', 'updated_at')
         extra_kwargs = {
-            'url': {'view_name': 'users:doctor-detail'},
+            'url': {'view_name': 'doctors:doctor-detail'},
             'doctor_number': {'read_only': True},
-            'url': {'view_name': 'users:doctor-detail'},
             # 'hiv_clinic': {'view_name': 'core:clinic-detail'}
 
         }
@@ -45,7 +44,7 @@ class DoctorNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_url(self, instance):
         return reverse(
-            viewname='users:next-of-keen-detail',
+            viewname='patients:next-of-keen-detail',
             args=[instance.patient.id, instance.id],
             request=self.context.get('request')
         )
@@ -54,6 +53,6 @@ class DoctorNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
         model = PatientNextOfKeen
         fields = ('url', 'patient', 'full_name', 'address', 'phone_number', 'created_at', 'updated_at')
         extra_kwargs = {
-            'url': {'view_name': 'users:next-of-keen-detail'},
-            'patient': {'view_name': 'users:patient-detail'},
+            'url': {'view_name': 'patients:next-of-keen-detail'},
+            'patient': {'view_name': 'patients:patient-detail'},
         }

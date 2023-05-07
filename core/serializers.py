@@ -31,8 +31,8 @@ class TransferRequestSerializer(serializers.HyperlinkedModelSerializer):
         )
         extra_kwargs = {
             'url': {'view_name': 'core:transfer-request-detail'},
-            'patient': {'view_name': 'users:patient-detail'},
-            'approved_by': {'view_name': 'users:doctor-detail'},
+            'patient': {'view_name': 'patients:patient-detail'},
+            'approved_by': {'view_name': 'doctors:doctor-detail'},
             'hospital': {'view_name': 'core:clinic-detail'},
         }
 
@@ -47,8 +47,8 @@ class PatientOnlyTransferSerializer(serializers.HyperlinkedModelSerializer):
         )
         extra_kwargs = {
             'url': {'view_name': 'core:transfer-request-detail'},
-            'patient': {'view_name': 'users:patient-detail', 'read_only': True},
-            'approved_by': {'view_name': 'users:doctor-detail', 'read_only': True},
+            'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
+            'approved_by': {'view_name': 'doctors:doctor-detail', 'read_only': True},
             'is_approved': {'read_only': True},
             'hospital': {'view_name': 'core:clinic-detail'},
         }

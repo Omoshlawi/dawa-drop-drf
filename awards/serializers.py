@@ -67,7 +67,7 @@ class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_url(self, instance):
         return reverse(
-            viewname='users:patient-redeem-detail',
+            viewname='patients:patient-redeem-detail',
             request=self.context.get('request'),
             args=[instance.patient.id, instance.id]
         )
@@ -107,7 +107,7 @@ class RedemptionSerializer(serializers.HyperlinkedModelSerializer):
             # 'points_balance'
         )
         extra_kwargs = {
-            'patient': {'view_name': 'users:patient-detail', 'read_only': True},
+            'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
             'reward': {'view_name': 'awards:reward-detail'},
             'points_redeemed': {'read_only': True}
         }
@@ -119,7 +119,7 @@ class PatientProgramEnrollmentSerializer(serializers.HyperlinkedModelSerializer)
         fields = ('url', 'patient', 'program', 'is_current', 'created_at', 'updated_at')
         extra_kwargs = {
             'url': {'view_name': 'awards:enrollment-detail'},
-            'patient': {'view_name': 'users:patient-detail'},
+            'patient': {'view_name': 'patients:patient-detail'},
             'program': {'view_name': 'awards:program-detail'},
         }
 

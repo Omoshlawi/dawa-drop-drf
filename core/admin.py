@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest
+from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType
 
 
 # Register your models here.
@@ -27,3 +27,8 @@ class TransferRequestAdmin(admin.ModelAdmin):
 
 class TransferRequestInline(admin.TabularInline):
     model = FacilityTransferRequest
+
+
+@admin.register(FacilityType)
+class FacilityTypeAdmin(admin.ModelAdmin):
+    list_display = ('level', 'name')

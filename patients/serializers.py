@@ -12,7 +12,7 @@ class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_url(self, instance):
         return reverse(
-            viewname='users:next-of-keen-detail',
+            viewname='patients:next-of-keen-detail',
             args=[instance.patient.id, instance.id],
             request=self.context.get('request')
         )
@@ -21,7 +21,7 @@ class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
         model = PatientNextOfKeen
         fields = ('url', 'full_name', 'address', 'phone_number', 'created_at', 'updated_at')
         extra_kwargs = {
-            'url': {'view_name': 'users:next-of-keen-detail'},
+            'url': {'view_name': 'patients:next-of-keen-detail'},
         }
 
 
@@ -42,7 +42,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'redeem_count': instance.redemptions.all().count(),
             'redeemable_points': instance.points_balance,
             'points_url': reverse(
-                viewname='users:patient-points',
+                viewname='patients:patient-points',
                 request=self.context.get('request'),
                 args=[instance.id]
             ),
@@ -51,7 +51,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
                 context=self.context
             ).data if instance.current_program_enrollment is not None else None,
             'redeem_url': reverse(
-                viewname='users:patient-redeem-points',
+                viewname='patients:patient-redeem-points',
                 request=self.context.get('request'),
                 args=[instance.id]
             ),
@@ -69,7 +69,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'next_of_keen': {
                 'count': len(nok),
                 'url': reverse(
-                    viewname='users:next-of-keen-list',
+                    viewname='patients:next-of-keen-list',
                     args=[instance.id],
                     request=self.context.get('request')
                 ),
@@ -99,7 +99,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'created_at', 'updated_at'
         )
         extra_kwargs = {
-            'url': {'view_name': 'users:patient-detail'},
+            'url': {'view_name': 'patients:patient-detail'},
             'patient_number': {'read_only': True},
             # 'base_clinic': {'view_name': 'core:clinic-detail'}
         }

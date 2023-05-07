@@ -4,6 +4,7 @@ from rest_framework.reverse import reverse
 
 from agents.models import DeliverAgent
 from awards.models import LoyaltyProgram
+from patients.models import Patient
 from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
 
@@ -95,7 +96,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
             'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
             # 'code': {'read_only': True},
             'delivery_agent': {
-                'view_name': 'users:agent-detail',
+                'view_name': 'agents:agent-detail',
                 'write_only': True,
                 'queryset': DeliverAgent.objects.filter(is_approved=True)
             },
@@ -126,7 +127,7 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:order-detail', 'read_only': True},
-            'patient': {'view_name': 'users:patient-detail', 'read_only': True},
+            'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
             'delivery': {'view_name': 'orders:delivery-detail', 'read_only': True},
         }
 

@@ -228,19 +228,19 @@ class UserInformationViewSerializer(serializers.ModelSerializer):
     def get_user_type_information_edit_url(self, instance):
         if instance.profile.user_type == 'doctor' and instance.profile.has_related_user_type:
             return reverse(
-                viewname="users:doctor-detail",
+                viewname="doctors:doctor-detail",
                 args=[instance.doctor.id],
                 request=self.context.get('request')
             )
         if instance.profile.user_type == 'agent' and instance.profile.has_related_user_type:
             return reverse(
-                viewname="users:agent-detail",
+                viewname="agents:agent-detail",
                 args=[instance.agent.id],
                 request=self.context.get('request')
             )
         if instance.profile.user_type == 'patient' and instance.profile.has_related_user_type:
             return reverse(
-                viewname="users:patient-detail",
+                viewname="patients:patient-detail",
                 args=[instance.patient.id],
                 request=self.context.get('request')
             )

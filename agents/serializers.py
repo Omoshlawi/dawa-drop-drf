@@ -11,7 +11,7 @@ class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
                   'work_clinic',
                   'created_at', 'updated_at')
         extra_kwargs = {
-            'url': {'view_name': 'users:agent-detail'},
+            'url': {'view_name': 'agents:agent-detail'},
             'agent_number': {'read_only': True},
             'delivery_mode': {'view_name': 'core:mode-detail'},
             'work_clinic': {'view_name': 'core:clinic-detail'}
