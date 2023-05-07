@@ -1,6 +1,6 @@
 import json
 
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync
 
 """
@@ -15,6 +15,11 @@ Layers are used for scalability to enable multiple connection with same state(in
 
 
 class TripConsumer(WebsocketConsumer):
+    """
+    Synchronous consumers are convenient because they can call regular synchronous
+    I/O functions such as those that access Django models without writing special code.
+    """
+
     def connect(self):
         self.id = self.scope['url_route']['kwargs']['trip_id']
         self.trip_group_name = 'Trip_%s' % self.id
@@ -74,46 +79,40 @@ class TripConsumer(WebsocketConsumer):
         # Send message to WebSocket
         self.send(text_data=json.dumps(event))
 
-# import json
-# from channels.generic.websocket import AsyncWebsocketConsumer
-#
-# class TripConsumer(AsyncWebsocketConsumer):
-#     async def connect(self):
-#         self.trip_id = self.scope['url_route']['kwargs']['trip_id']
-#         self.room_group_name = f'trip_{self.trip_id}'
-#
-#         # Join room group
-#         await self.channel_layer.group_add(
-#             self.room_group_name,
-#             self.channel_name
-#         )
-#
-#         await self.accept()
-#
-#     async def disconnect(self, close_code):
-#         # Leave room group
-#         await self.channel_layer.group_discard(
-#             self.room_group_name,
-#             self.channel_name
-#         )
-#
-#     async def receive(self, text_data):
-#         data = json.loads(text_data)
-#         message = data['name']
-#
-#         # Send message to room group
-#         await self.channel_layer.group_send(
-#             self.room_group_name,
-#             {
-#                 'type': 'echo_message',
-#                 'message': message
-#             }
-#         )
-#
-#     async def echo_message(self, event):
-#         message = event['message']
-#
-#         # Send message to WebSocket
-#         await self.send(text_data=json.dumps({
-#             'message': message
-#         }))
+
+class AsyncTripConsumer(AsyncWebsocketConsumer):
+    """
+    Very similar to above except for it is asynchronous
+    """
+
+    async def connect(self):
+        self.id = self.scope['url_route']['kwargs']['trip_id']
+        self.trip_group_name = 'Trip_%s' % self.id
+
+        # Join room group
+        await self.channel_layer.group_add(self.trip_group_name, self.channel_name)
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        await self.channel_layer.group_discard(self.trip_group_name, self.channel_name)
+
+    # Receive message from WebSocket
+    async def receive(self, text_data):
+        # text_data_json = json.loads(text_data)
+        # message = text_data_json["message"]
+
+        # Send message to room group
+        await self.channel_layer.group_send(
+            self.trip_group_name,
+            {
+                'type': 'trip_tracking_info',
+                'message': text_data,
+            }
+        )
+
+    # Receive message from room group
+    async def trip_tracking_info(self, event):
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps(event))
