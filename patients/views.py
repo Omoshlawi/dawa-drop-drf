@@ -5,8 +5,8 @@ from rest_framework.generics import get_object_or_404
 
 from core import permisions as custom_permissions
 from patients import mixin
-from patients.models import Patient, PatientNextOfKeen
-from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer
+from patients.models import Patient, PatientNextOfKeen, Triad
+from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer, TriadSerializer
 
 
 # Create your views here.
@@ -41,3 +41,11 @@ class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
                 detail="Warning!!Your are forbidden from accessing other patient private information",
             )
         return PatientNextOfKeen.objects.filter(patient=patient)
+
+
+class TriadViewSet(viewsets.ModelViewSet):
+    serializer_class = TriadSerializer
+    permission_classes = [custom_permissions.IsDoctorOrReadOnly]
+
+    def get_queryset(self):
+        return Triad.objects.all()

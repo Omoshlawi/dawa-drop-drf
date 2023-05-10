@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-
+from rest_framework_nested import serializers as nested_serializer
 from awards.serializers import PatientProgramEnrollmentSerializer, RedemptionSerializer
 from core.models import HealthFacility
 from core.serializers import HealthFacilitySerializer
-from patients.models import PatientNextOfKeen, Patient
+from patients.models import PatientNextOfKeen, Patient, Triad
 
 
 class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
@@ -32,7 +32,10 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
     loyalty_points = serializers.SerializerMethodField()
     enrollments = PatientProgramEnrollmentSerializer(many=True, read_only=True)
-
+    triads = nested_serializer.NestedHyperlinkedIdentityField(
+        many=True, view_name='patients:triad-detail',
+        read_only=True, parent_lookup_kwargs={'patient_pk': 'patient__pk'}
+    )
     # redemptions = serializers.SerializerMethodField()
 
     def get_loyalty_points(self, instance):
@@ -83,6 +86,19 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
                 context=self.context
             ).data
         }
+        triad_list = _dict.pop('triads')
+        triads_obj = {
+            'triads':{
+                'count': len(triad_list),
+                'url': reverse(
+                    viewname='patients:triad-list',
+                    args=[instance.id],
+                    request=self.context.get('request')
+                ),
+                'url_list': triad_list
+            }
+        }
+        _dict.update(triads_obj)
         _dict.update(nok_obj)
         _dict.update(base_clinic_obj)
         return _dict
@@ -91,6 +107,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         model = Patient
         fields = (
             'url',
+            'triads',
             'patient_number', 'next_of_keen',
             'base_clinic',
             # 'redemptions',
@@ -102,4 +119,25 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'patients:patient-detail'},
             'patient_number': {'read_only': True},
             # 'base_clinic': {'view_name': 'core:clinic-detail'}
+        }
+
+
+class TriadSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, instance):
+        return reverse(
+            viewname='patients:triad-detail',
+            args=[instance.patient.id, instance.id],
+            request=self.context.get('request')
+        )
+
+    class Meta:
+        model = Triad
+        fields = (
+            'url',
+            'patient', 'weight', 'height', 'blood_pressure', 'created_at'
+        )
+        extra_kwargs = {
+            'patient': {'view_name': 'patients:patient-detail'},
         }

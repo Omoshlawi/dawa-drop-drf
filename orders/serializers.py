@@ -15,6 +15,14 @@ class AgentTripSerializer(serializers.HyperlinkedModelSerializer):
     agent = serializers.SerializerMethodField()
     trip_id = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    route_url = serializers.SerializerMethodField()
+
+    def get_route_url(self, instance):
+        return reverse(
+            viewname='orders:trip-route',
+            args=[instance.id],
+            request=self.context.get('request')
+        )
 
     def get_status(self, instance):
         return instance.status
@@ -44,7 +52,7 @@ class AgentTripSerializer(serializers.HyperlinkedModelSerializer):
         model = AgentTrip
         fields = (
             'url', 'trip_id', 'delivery', 'status', 'current_location',
-            'latitude', 'longitude',
+            'latitude', 'longitude', 'route_url',
             'destination', 'agent', 'created_at', 'updated_at'
         )
         extra_kwargs = {

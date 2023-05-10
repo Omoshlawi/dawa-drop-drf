@@ -3,7 +3,7 @@ from django.contrib import admin
 from awards.admin import PatientRedemptionInline, PatientProgramEnrollmentInline
 from awards.models import PatientProgramEnrollment
 from core.admin import TransferRequestInline
-from .models import PatientNextOfKeen, Patient
+from .models import PatientNextOfKeen, Patient, Triad
 
 
 # Register your models here.
@@ -18,6 +18,10 @@ class PatientNextOfKeenInline(admin.TabularInline):
     model = PatientNextOfKeen
 
 
+class PatientTriadInline(admin.TabularInline):
+    model = Triad
+
+
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
     list_display = ("user", 'patient_number', 'base_clinic', 'created_at')
@@ -25,5 +29,11 @@ class PatientAdmin(admin.ModelAdmin):
         PatientProgramEnrollmentInline,
         PatientNextOfKeenInline,
         PatientRedemptionInline,
-        TransferRequestInline
+        TransferRequestInline,
+        PatientTriadInline
     ]
+
+
+@admin.register(Triad)
+class TriadAdmin(admin.ModelAdmin):
+    list_display = ('patient', 'weight', 'height', 'blood_pressure', 'created_at')

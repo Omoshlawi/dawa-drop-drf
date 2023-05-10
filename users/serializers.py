@@ -143,9 +143,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             raise serializers.ValidationError('User With That Email Already Exists')
         return email
 
+    def validate_username(self, username):
+        # validator = EmailValidator('Enter a valid email address.')
+        # validator(email)
+        if User.objects.filter(username=username).exclude(username=self.instance.username).exists():
+            raise serializers.ValidationError('User With That Username Already Exists')
+        return username
+
     class Meta:
         model = User
-        fields = ['url', 'email', 'name', 'first_name', 'last_name']
+        fields = ['url', 'username', 'email', 'name', 'first_name', 'last_name']
         # extra_kwargs = {
         #     'first_name': {'write_only': True},
         #     'last_name': {'write_only': True},
