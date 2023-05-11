@@ -48,4 +48,9 @@ class TriadViewSet(viewsets.ModelViewSet):
     permission_classes = [custom_permissions.IsDoctorOrReadOnly]
 
     def get_queryset(self):
-        return Triad.objects.all()
+        patient = get_object_or_404(Patient, id=self.kwargs.get("patient_pk"))
+        return patient.triads.all()
+
+    def perform_create(self, serializer):
+        patient = get_object_or_404(Patient, id=self.kwargs.get("patient_pk"))
+        serializer.save(patient=patient)

@@ -36,6 +36,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         many=True, view_name='patients:triad-detail',
         read_only=True, parent_lookup_kwargs={'patient_pk': 'patient__pk'}
     )
+
     # redemptions = serializers.SerializerMethodField()
 
     def get_loyalty_points(self, instance):
@@ -88,7 +89,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         }
         triad_list = _dict.pop('triads')
         triads_obj = {
-            'triads':{
+            'triads': {
                 'count': len(triad_list),
                 'url': reverse(
                     viewname='patients:triad-list',
@@ -139,5 +140,5 @@ class TriadSerializer(serializers.HyperlinkedModelSerializer):
             'patient', 'weight', 'height', 'blood_pressure', 'created_at'
         )
         extra_kwargs = {
-            'patient': {'view_name': 'patients:patient-detail'},
+            'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
         }
