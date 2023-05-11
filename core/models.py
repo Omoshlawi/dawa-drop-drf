@@ -76,6 +76,12 @@ class MaritalStatus(models.Model):
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.status
+
+    class Meta:
+        ordering = ['-created_at']
 # class DeliveryItem(models.Model):
 #     """Models item to be delivered to the patient"""
 #     name = models.CharField(max_length=)

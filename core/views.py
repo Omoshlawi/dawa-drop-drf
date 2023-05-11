@@ -5,9 +5,9 @@ from rest_framework import viewsets, permissions
 
 from users.models import Patient
 from . import permisions as custom_permissions
-from .models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType
+from .models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus
 from .serializers import HealthFacilitySerializer, DeliveryModeSerializer, TransferRequestSerializer, \
-    FacilityTypeSerializer
+    FacilityTypeSerializer, MaritalStatusSerializer
 from . import mixin
 
 
@@ -21,12 +21,13 @@ class ApiRootView(APIView):
             "doctors_url": reverse.reverse_lazy('doctors:doctor-list', request=request),
             # "doctors_url": reverse.reverse_lazy('users:user-doctor-list', request=request),
             "deliver_agents_url": reverse.reverse_lazy('agents:agent-list', request=request),
+            "marital_status": reverse.reverse_lazy('core:marital-status-list', request=request),
             # "deliver_agents_url": reverse.reverse_lazy('users:user-agent-list', request=request),
             "patients_url": reverse.reverse_lazy('patients:patient-list', request=request),
             "patients_transfer_request_url": reverse.reverse_lazy('core:transfer-request-list', request=request),
             "enrollments_url": reverse.reverse_lazy('awards:enrollment-list', request=request),
             # "patients_url": reverse.reverse_lazy('users:user-patient-list', request=request),
-            "health facilities types": reverse.reverse_lazy('core:facility-type-list', request=request),
+            "health_facilities_types": reverse.reverse_lazy('core:facility-type-list', request=request),
             "health facilities url": reverse.reverse_lazy('core:facility-list', request=request),
             "award_programs_url": reverse.reverse_lazy('awards:program-list', request=request),
             "reward_url": reverse.reverse_lazy('awards:reward-list', request=request),
@@ -37,7 +38,7 @@ class ApiRootView(APIView):
         })
 
 
-class HealthFacilitySerializer(viewsets.ModelViewSet):
+class HealthFacilityViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, custom_permissions.IsDoctorOrReadOnly]
     queryset = HealthFacility.objects.all()
     serializer_class = HealthFacilitySerializer
@@ -62,3 +63,12 @@ class TransferRequestViewSet(viewsets.ModelViewSet, mixin.PatientTransferMixin):
     ]
     queryset = FacilityTransferRequest.objects.all()
     serializer_class = TransferRequestSerializer
+
+
+class MaritalStatusViewSet(viewsets.ModelViewSet):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsDoctorOrReadOnly
+    ]
+    queryset = MaritalStatus.objects.all()
+    serializer_class = MaritalStatusSerializer

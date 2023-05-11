@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType
+from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus
 
 
 class HealthFacilitySerializer(serializers.HyperlinkedModelSerializer):
@@ -81,3 +81,12 @@ class PatientOnlyTransferSerializer(serializers.HyperlinkedModelSerializer):
 
         _dict.update(approved_by_obj)
         return _dict
+
+
+class MaritalStatusSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = MaritalStatus
+        fields = ('url', 'status', 'description', 'is_active', 'created_at')
+        extra_kwargs = {
+            'url': {'view_name': 'core:marital-status-detail'}
+        }

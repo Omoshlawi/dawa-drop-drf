@@ -3,7 +3,7 @@ from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 from awards.serializers import PatientProgramEnrollmentSerializer, RedemptionSerializer
 from core.models import HealthFacility
-from core.serializers import HealthFacilitySerializer
+from core.serializers import HealthFacilitySerializer, MaritalStatusSerializer
 from patients.models import PatientNextOfKeen, Patient, Triad
 
 
@@ -99,6 +99,14 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
                 'url_list': triad_list
             }
         }
+        marital_status = _dict.pop("marital_status")
+        marital_status_obj = {
+            'marital_status': MaritalStatusSerializer(
+                instance=instance.marital_status,
+                context=self.context
+            ).data if instance.marital_status else None
+        }
+        _dict.update(marital_status_obj)
         _dict.update(triads_obj)
         _dict.update(nok_obj)
         _dict.update(base_clinic_obj)
@@ -109,16 +117,20 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'url',
             'triads',
-            'patient_number', 'next_of_keen',
+            'patient_number',
+            'next_of_keen',
             'base_clinic',
-            # 'redemptions',
+            'county_of_residence',
             'enrollments',
+            'marital_status',
             'loyalty_points',
-            'created_at', 'updated_at'
+            'created_at',
+            'updated_at',
         )
         extra_kwargs = {
             'url': {'view_name': 'patients:patient-detail'},
             'patient_number': {'read_only': True},
+            'marital_status': {'view_name': 'core:marital-status-detail'}
             # 'base_clinic': {'view_name': 'core:facility-detail'}
         }
 
