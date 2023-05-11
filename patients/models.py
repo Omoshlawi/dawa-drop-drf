@@ -97,13 +97,14 @@ class PatientNextOfKeen(models.Model):
 
 class Triad(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='triads')
-    weight = models.DecimalField(decimal_places=2, max_digits=12)
+    weight = models.DecimalField(decimal_places=2, max_digits=12, blank=True, null=True)
     height = models.DecimalField(decimal_places=2, max_digits=12)
-    blood_pressure = models.DecimalField(decimal_places=2, max_digits=12)
-    created_at = models.DateTimeField(auto_now=True)
+    temperature = models.PositiveIntegerField(null=True, blank=True)
+    heart_rate = models.PositiveIntegerField(null=True, blank=True)
+    blood_pressure = models.DecimalField(decimal_places=2, max_digits=12, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         ordering = ['-created_at']
-
 
 

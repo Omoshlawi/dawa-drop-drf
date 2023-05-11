@@ -137,7 +137,9 @@ class TriadSerializer(serializers.HyperlinkedModelSerializer):
         model = Triad
         fields = (
             'url',
-            'patient', 'weight', 'height', 'blood_pressure', 'created_at'
+            'patient', 'weight', 'height',
+            'temperature', 'heart_rate',
+            'blood_pressure', 'created_at'
         )
         extra_kwargs = {
             'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
