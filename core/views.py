@@ -5,8 +5,9 @@ from rest_framework import viewsets, permissions
 
 from users.models import Patient
 from . import permisions as custom_permissions
-from .models import HealthFacility, DeliveryMode, FacilityTransferRequest
-from .serializers import HealthFacilitySerializer, DeliveryModeSerializer, TransferRequestSerializer
+from .models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType
+from .serializers import HealthFacilitySerializer, DeliveryModeSerializer, TransferRequestSerializer, \
+    FacilityTypeSerializer
 from . import mixin
 
 
@@ -25,7 +26,8 @@ class ApiRootView(APIView):
             "patients_transfer_request_url": reverse.reverse_lazy('core:transfer-request-list', request=request),
             "enrollments_url": reverse.reverse_lazy('awards:enrollment-list', request=request),
             # "patients_url": reverse.reverse_lazy('users:user-patient-list', request=request),
-            "clinics_url": reverse.reverse_lazy('core:clinic-list', request=request),
+            "health facilities types": reverse.reverse_lazy('core:facility-type-list', request=request),
+            "health facilities url": reverse.reverse_lazy('core:facility-list', request=request),
             "award_programs_url": reverse.reverse_lazy('awards:program-list', request=request),
             "reward_url": reverse.reverse_lazy('awards:reward-list', request=request),
             "delivery_modes_url": reverse.reverse_lazy('core:mode-list', request=request),
@@ -35,14 +37,20 @@ class ApiRootView(APIView):
         })
 
 
-class HIVClinicViewSet(viewsets.ModelViewSet):
-    permission_classes = [custom_permissions.IsDoctorOrReadOnly]
+class HealthFacilitySerializer(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, custom_permissions.IsDoctorOrReadOnly]
     queryset = HealthFacility.objects.all()
     serializer_class = HealthFacilitySerializer
 
 
+class HealthFacilityTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, custom_permissions.IsDoctorOrReadOnly]
+    queryset = FacilityType.objects.all()
+    serializer_class = FacilityTypeSerializer
+
+
 class DeliveryModeViewSet(viewsets.ModelViewSet):
-    permission_classes = [custom_permissions.IsAdminOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, custom_permissions.IsAdminOrReadOnly]
     queryset = DeliveryMode.objects.all()
     serializer_class = DeliveryModeSerializer
 

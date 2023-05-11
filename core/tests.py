@@ -13,7 +13,7 @@ from core.models import HealthFacility, DeliveryMode
 
 class HIVClinicApiTestCase(APITestCase):
     def setUp(self) -> None:
-        self.url = reverse('core:clinic-list')
+        self.url = reverse('core:facility-list')
         self.factory = RequestFactory()
         self.normal_user = User.objects.create_user(username='testuser', password='testpassword')
         self.admin_user = User.objects.create_user(username='testadminuser', password='testpassword', is_staff=True)
@@ -71,7 +71,7 @@ class HIVClinicApiTestCase(APITestCase):
     def test_retrieve(self):
         """Test clinic detail view"""
         clinic = HealthFacility.objects.all().first()
-        url = reverse("core:clinic-detail", args=[clinic.id])
+        url = reverse("core:facility-detail", args=[clinic.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(clinic.name, response.data["name"])
@@ -87,7 +87,7 @@ class HIVClinicApiTestCase(APITestCase):
             'address': "Sample PUT address",
         }
         clinic = HealthFacility.objects.all().first()
-        url = reverse("core:clinic-detail", args=[clinic.id])
+        url = reverse("core:facility-detail", args=[clinic.id])
         self.client.login(username='testadminuser', password='testpassword')
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -99,7 +99,7 @@ class HIVClinicApiTestCase(APITestCase):
 
     def test_delete(self):
         clinic = HealthFacility.objects.all().first()
-        url = reverse("core:clinic-detail", args=[clinic.id])
+        url = reverse("core:facility-detail", args=[clinic.id])
         self.client.login(username='testadminuser', password='testpassword')
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

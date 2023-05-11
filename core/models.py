@@ -18,7 +18,7 @@ class FacilityType(models.Model):
 
 
 class HealthFacility(models.Model):
-    identification_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    identification_code = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=100)
     type = models.ForeignKey(FacilityType, on_delete=models.CASCADE, related_name='facilities')
     longitude = models.DecimalField(max_digits=22, decimal_places=16)

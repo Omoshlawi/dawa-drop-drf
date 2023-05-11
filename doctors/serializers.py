@@ -9,7 +9,7 @@ from patients.models import PatientNextOfKeen
 
 class DoctorSerializer(serializers.ModelSerializer):
     hiv_clinic = serializers.HyperlinkedRelatedField(
-        view_name='core:clinic-detail', queryset=HealthFacility.objects.all()
+        view_name='core:facility-detail', queryset=HealthFacility.objects.all()
     )
 
     def to_representation(self, instance):
@@ -34,7 +34,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'url': {'view_name': 'doctors:doctor-detail'},
             'doctor_number': {'read_only': True},
-            # 'hiv_clinic': {'view_name': 'core:clinic-detail'}
+            # 'hiv_clinic': {'view_name': 'core:facility-detail'}
 
         }
 

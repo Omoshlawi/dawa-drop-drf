@@ -14,7 +14,7 @@ class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'agents:agent-detail'},
             'agent_number': {'read_only': True},
             'delivery_mode': {'view_name': 'core:mode-detail'},
-            'work_clinic': {'view_name': 'core:clinic-detail'}
+            'work_clinic': {'view_name': 'core:facility-detail'}
         }
 
     def to_representation(self, instance):

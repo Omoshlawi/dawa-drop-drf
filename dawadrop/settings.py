@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'awards',
     'agents',
     'doctors',
+    'medication',
 ]
 
 MIDDLEWARE = [
@@ -130,7 +131,6 @@ CHANNEL_LAYERS = {
 #         },
 #     },
 # }
-
 
 
 # Database

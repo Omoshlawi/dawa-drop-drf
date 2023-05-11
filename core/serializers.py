@@ -1,14 +1,24 @@
 from rest_framework import serializers
 
-from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest
+from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType
 
 
 class HealthFacilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = HealthFacility
-        fields = ('url', 'name', 'longitude', 'latitude', 'address')
+        fields = ('url', 'identification_code', 'name', 'type', 'longitude', 'latitude', 'address')
         extra_kwargs = {
-            'url': {'view_name': 'core:clinic-detail'}
+            'url': {'view_name': 'core:facility-detail'},
+            'type': {'view_name': "core:facility-type-detail"}
+        }
+
+
+class FacilityTypeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = FacilityType
+        fields = ('url', 'level', 'name', 'description')
+        extra_kwargs = {
+            'url': {'view_name': "core:facility-type-detail"}
         }
 
 
@@ -33,7 +43,7 @@ class TransferRequestSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'core:transfer-request-detail'},
             'patient': {'view_name': 'patients:patient-detail'},
             'approved_by': {'view_name': 'doctors:doctor-detail'},
-            'hospital': {'view_name': 'core:clinic-detail'},
+            'hospital': {'view_name': 'core:facility-detail'},
         }
 
 
@@ -50,7 +60,7 @@ class PatientOnlyTransferSerializer(serializers.HyperlinkedModelSerializer):
             'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
             'approved_by': {'view_name': 'doctors:doctor-detail', 'read_only': True},
             'is_approved': {'read_only': True},
-            'hospital': {'view_name': 'core:clinic-detail'},
+            'hospital': {'view_name': 'core:facility-detail'},
         }
 
     def to_representation(self, instance):

@@ -27,7 +27,7 @@ class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
 
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
     base_clinic = serializers.HyperlinkedRelatedField(
-        view_name='core:clinic-detail', queryset=HealthFacility.objects.all()
+        view_name='core:facility-detail', queryset=HealthFacility.objects.all()
     )
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
     loyalty_points = serializers.SerializerMethodField()
@@ -119,7 +119,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'view_name': 'patients:patient-detail'},
             'patient_number': {'read_only': True},
-            # 'base_clinic': {'view_name': 'core:clinic-detail'}
+            # 'base_clinic': {'view_name': 'core:facility-detail'}
         }
 
 
