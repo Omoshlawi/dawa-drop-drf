@@ -290,3 +290,23 @@ class UserInformationViewSerializer(serializers.ModelSerializer):
             'profile_information_edit_url', 'user_type_information_edit_url',
             # 'patient_next_of_keen_edit_url'
         )
+
+
+class AccountSearchSerializer(serializers.Serializer):
+    search = serializers.CharField(required=False, help_text='Patient number or national Id')
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+
+class AccountVerifySerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=8)
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass

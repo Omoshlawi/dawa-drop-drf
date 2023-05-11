@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from users.models import Profile
+from users.models import Profile, AccountVerification
 
 
 # Register your models here.
@@ -14,3 +14,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',)
     date_hierarchy = 'created_at'
 
+
+@admin.register(AccountVerification)
+class AccountVerificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'code', 'is_verified', 'search_value', 'extra_data')

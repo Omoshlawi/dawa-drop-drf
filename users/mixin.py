@@ -1,19 +1,23 @@
+from django.conf import settings
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_201_CREATED
-
+import requests
 from awards.serializers import RedemptionSerializer, PatientProgramEnrollmentSerializer
 from core import permisions as custom_permissions
-from rest_framework import permissions
-
-from users.models import Patient
+from rest_framework import permissions, status
+from urllib.parse import parse_qs
+from users.models import Patient, AccountVerification
 from users.serializers import (
     UserProfileSerializer, UserLoginSerializer,
-    UserCredentialSerializer, UserRegistrationSerializer, UserInformationViewSerializer, ProfileSerializer
+    UserCredentialSerializer, UserRegistrationSerializer, UserInformationViewSerializer, ProfileSerializer,
+    AccountSearchSerializer, AccountVerifySerializer
 )
+from users.utils import obscure_email, obscure_number, update_patient
 
 
 class DoctorsMixin:
@@ -197,6 +201,106 @@ class ProfileMixin:
     def profile_view(self, request, *args, **kwargs):
         user = request.user
         return Response(self.get_serializer(instance=user).data)
+
+    @action(
+        methods=['post'], url_name='find-account', url_path='find-account', detail=False,
+        serializer_class=AccountSearchSerializer, permission_classes=[permissions.IsAuthenticated], )
+    def find_my_account(self, request, *args, **kwargs):
+        """Find patient account with patient number or national id"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        params = serializer.data
+        if not params:
+            return Response(
+                data={'Error': 'You must specify either patient number or national id'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        response = requests.get(
+            url=f"{settings.EMR_BASE_URL}users/patients/",
+            params=params
+        )
+        dict_ = serializer.validated_data
+        results = []
+        patients = response.json()
+        for index, patient in enumerate(patients["results"]):
+            obscured_number = obscure_number(patient['phone_number'])
+            obscured_email = obscure_email(patient['email'])
+            results.append({
+                'email': obscured_email,
+                'phone_number': obscured_number,
+                'request_verification_url': reverse(
+                    viewname='users:user-request-verification',
+                    request=request
+                ) + f"?search={dict_['search']}&account={index}"
+            })
+        dict_['results'] = results
+        return Response(data=dict_, status=status.HTTP_200_OK)
+
+    @action(
+        methods=['get'], url_name='request-verification', url_path='verify-request', detail=False,
+        permission_classes=[permissions.IsAuthenticated])
+    def request_verification(self, request, *args, **kwargs):
+        search = request.GET.get("search")
+        index = request.GET.get("account")
+        # validate query strong
+        if not (search and index):
+            return Response(data={"detail": "Wrong data"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            index = int(index)
+        except Exception as e:
+            return Response(data={"detail": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        # check if exists
+        response = requests.get(
+            url=f"{settings.EMR_BASE_URL}users/patients/",
+            params={'search': search}
+        ).json()
+        if response.get("count") < index:
+            return Response(data={"detail": "Wrong data"}, status=status.HTTP_400_BAD_REQUEST)
+        # create verification object
+        AccountVerification.objects.create(
+            user=request.user,
+            search_value=search,
+            extra_data=str(index)
+        )
+        data = {
+            'verify_url': reverse(
+                viewname='users:user-verify',
+                request=request
+            ),
+            'message': f"Check your email {obscure_number(response['results'][index]['email'])} "
+                       f"or phone number {obscure_number(response['results'][index]['phone_number'])} for verification "
+        }
+        return Response(data=data)
+
+    @action(
+        methods=['post'], url_name='verify', url_path='verify', detail=False,
+        serializer_class=AccountVerifySerializer,
+        permission_classes=[permissions.IsAuthenticated], )
+    def account_verification(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        code = serializer.data.get('code')
+        try:
+            verification = AccountVerification.objects.get(
+                code=code,
+                user=request.user,
+                is_verified=False
+            )
+            response = requests.get(
+                url=f"{settings.EMR_BASE_URL}users/patients/",
+                params={'search': verification.search_value}
+            ).json()
+            index = int(verification.extra_data)
+            if response.get("count") < index:
+                return Response(data={"detail": "Account not found."}, status=status.HTTP_400_BAD_REQUEST)
+            # prefill patient info
+            patient = response["results"][index]
+            update_patient(patient)
+            # verification.is_verified = True
+            # verification.save()
+            return Response(data={"detail": "Account verification successful"}, status=status.HTTP_200_OK)
+        except AccountVerification.DoesNotExist:
+            return Response(data={"detail": "Account not found."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DoctorNextOfKeenMixin:

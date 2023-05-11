@@ -52,7 +52,7 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         random_string = secrets.token_hex(16)
         # make sure its unique
-        while Delivery.objects.filter(code=random_string):
+        while Delivery.objects.filter(code=random_string).exists():
             random_string = secrets.token_hex(16)
         # create delivery object
         doctor = Doctor.objects.get_or_create(user=self.request.user)[0]

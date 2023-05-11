@@ -1,4 +1,5 @@
 # Create your models here.
+import secrets
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -56,11 +57,30 @@ class Profile(models.Model):
             return DeliverAgent.objects.filter(user=self.user).exists()
 
 
+class AccountVerification(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    code = models.CharField(max_length=4, null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+    search_value = models.CharField(max_length=50)
+    extra_data = models.CharField(max_length=255)
+
+
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
     # create profile
     if created:
         Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=AccountVerification)
+def generate_unique_verification_code(sender, instance, created, **kwargs):
+    if created:
+        random_string = secrets.token_hex(2)
+        # make sure there exist no other unverified verification with generated code
+        while AccountVerification.objects.filter(code=random_string,is_verified=False).exists():
+            random_string = secrets.token_hex(2)
+        instance.code = random_string
+        instance.save()
 
 # @receiver(pre_save, sender=User)
 # def check_email(sender, instance, **kwargs):

@@ -216,3 +216,5 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+
+EMR_BASE_URL = "http://192.168.100.5/"
