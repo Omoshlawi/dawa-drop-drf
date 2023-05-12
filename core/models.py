@@ -6,6 +6,7 @@ from django.db import models
 
 # Toa medical specialties, staffing, equipment, bed capacity
 class FacilityType(models.Model):
+    remote_id = models.PositiveIntegerField(unique=True)
     level = models.PositiveIntegerField()
     name = models.CharField(max_length=20)
     description = models.TextField(null=True, blank=True)
@@ -72,6 +73,8 @@ class DeliveryMode(models.Model):
 
 
 class MaritalStatus(models.Model):
+    #   TODO remove the null when you clear the db
+    remote_id = models.PositiveIntegerField(unique=True)
     status = models.CharField(max_length=50)
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)

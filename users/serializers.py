@@ -153,10 +153,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ['url', 'username', 'email', 'name', 'first_name', 'last_name']
-        # extra_kwargs = {
-        #     'first_name': {'write_only': True},
-        #     'last_name': {'write_only': True},
-        # }
+        extra_kwargs = {
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+            'email': {'required': False},
+            'username': {'required': False},
+        }
 
 
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):

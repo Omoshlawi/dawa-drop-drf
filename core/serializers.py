@@ -13,6 +13,12 @@ class HealthFacilitySerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class EmrHealthFacilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HealthFacility
+        fields = ('id', 'identification_code', 'name', 'type', 'longitude', 'latitude', 'address')
+
+
 class FacilityTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = FacilityType
@@ -90,3 +96,9 @@ class MaritalStatusSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'view_name': 'core:marital-status-detail'}
         }
+
+
+class EmrMaritalStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MaritalStatus
+        fields = ('id', 'status', 'description', 'is_active', 'created_at')
