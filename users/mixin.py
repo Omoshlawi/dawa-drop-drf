@@ -222,7 +222,6 @@ class ProfileMixin:
         return {
             'email': obscure_number(patient['email']),
             'phone_number': obscure_number(patient['phone_number'])
-
         }
 
     @action(
@@ -254,7 +253,7 @@ class ProfileMixin:
             results.append({
                 'email': obscured_email,
                 'phone_number': obscured_number,
-                'first_name': patient['first_name'],
+                'patient_number': patient['patient_number'],
                 'request_verification_url': reverse(
                     viewname='users:user-request-verification',
                     request=request
