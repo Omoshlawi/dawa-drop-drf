@@ -39,19 +39,25 @@ class ApiRootView(APIView):
 
 
 class HealthFacilityViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, custom_permissions.IsDoctorOrReadOnly]
+    permission_classes = [permissions.AllowAny, custom_permissions.IsDoctorOrReadOnly]
     queryset = HealthFacility.objects.all()
     serializer_class = HealthFacilitySerializer
 
 
 class HealthFacilityTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, custom_permissions.IsDoctorOrReadOnly]
+    permission_classes = [
+        permissions.AllowAny,
+        custom_permissions.IsDoctorOrReadOnly
+    ]
     queryset = FacilityType.objects.all()
     serializer_class = FacilityTypeSerializer
 
 
 class DeliveryModeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, custom_permissions.IsAdminOrReadOnly]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsAdminOrReadOnly
+    ]
     queryset = DeliveryMode.objects.all()
     serializer_class = DeliveryModeSerializer
 

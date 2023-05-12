@@ -10,7 +10,7 @@ def obscure_email(email):
 
 
 def obscure_number(phone_number):
-    obscured_number = '{}******{}'.format(phone_number[:3], phone_number[-2:])
+    obscured_number = '{}*******{}'.format(phone_number[:4], phone_number[-2:])
     return obscured_number
 
 

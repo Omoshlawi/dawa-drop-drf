@@ -24,7 +24,7 @@ class IsDoctorOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
-        return request.user and request.user.profile.user_type == 'doctor'
+        return request.user and request.user.is_authenticated and request.user.profile.user_type == 'doctor'
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -36,7 +36,7 @@ class IsAgentOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
-        return request.user and request.user.profile.user_type == 'agent'
+        return request.user and request.user.is_authenticated and request.user.profile.user_type == 'agent'
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
@@ -48,7 +48,7 @@ class IsPatientOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
-        return request.user and request.user.profile.user_type == 'patient'
+        return request.user and request.user.is_authenticated and request.user.profile.user_type == 'patient'
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:

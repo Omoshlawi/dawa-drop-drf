@@ -212,7 +212,7 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
         try:
             marital_status = MaritalStatus.objects.get(remote_id=marital_status_dict["id"])
             # TODO update marital status type
-        except FacilityType.DoesNotExist:
+        except MaritalStatus.DoesNotExist:
             marital_status = MaritalStatus.objects.create(
                 remote_id=marital_status_dict["id"],
                 status=marital_status_dict["status"],
