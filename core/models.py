@@ -85,6 +85,16 @@ class MaritalStatus(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-# class DeliveryItem(models.Model):
-#     """Models item to be delivered to the patient"""
-#     name = models.CharField(max_length=)
+
+
+class AppointMentType(models.Model):
+    code = models.CharField(max_length=20, unique=True)
+    type = models.CharField(max_length=50)
+    description = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.type
+
+    class Meta:
+        ordering = ['-created_at']
