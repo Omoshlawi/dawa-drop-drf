@@ -88,7 +88,7 @@ class MaritalStatus(models.Model):
 
 
 class AppointMentType(models.Model):
-    code = models.CharField(max_length=20, unique=True)
+    code = models.CharField(max_length=20, unique=True, null=True, blank=True)
     remote_id = models.PositiveIntegerField(unique=True)
     type = models.CharField(max_length=50)
     description = models.TextField(null=True, blank=True)

@@ -1,9 +1,12 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 from awards.serializers import PatientProgramEnrollmentSerializer, RedemptionSerializer
-from core.models import HealthFacility, FacilityType, MaritalStatus
+from core.models import HealthFacility, FacilityType, MaritalStatus, AppointMentType
 from core.serializers import HealthFacilitySerializer, MaritalStatusSerializer
+from doctors.models import Doctor
+from medication.models import AppointMent, PatientHivMedication, ARTRegimen
 from patients.models import PatientNextOfKeen, Patient, Triad
 
 
@@ -161,19 +164,33 @@ class TriadSerializer(serializers.HyperlinkedModelSerializer):
 class PatientAddUpdateSerializer(serializers.ModelSerializer):
     marital_status = serializers.JSONField()
     base_clinic = serializers.JSONField()
+    triads = serializers.JSONField()
+    prescriptions = serializers.JSONField()
+    appointments = serializers.JSONField()
 
     class Meta:
         model = Patient
         fields = (
             'patient_number', 'date_of_birth', 'county_of_residence', 'occupation',
-            'national_id', 'marital_status', 'base_clinic'
+            'national_id', 'marital_status', 'base_clinic', 'triads', 'next_of_keen',
+            'prescriptions', 'appointments'
         )
 
     def update(self, instance, validated_data):
         facility = self.get_or_create_facility(validated_data.pop("base_clinic"))
         marital_status = self.get_or_create_marital_status(validated_data.pop("marital_status"))
+        triads = validated_data.pop("triads")
+        next_of_keen = validated_data.pop("next_of_keen")
+        prescriptions = validated_data.pop('prescriptions')
+        appointments = validated_data.pop('appointments')
+
         validated_data.update({'base_clinic': facility, 'marital_status': marital_status})
-        return super().update(instance, validated_data)
+        updated_instance = super().update(instance, validated_data)
+        self.update_or_create_triads(triads, updated_instance)
+        self.update_or_create_nok(next_of_keen, updated_instance)
+        self.update_or_create_appointments(appointments, updated_instance)
+        self.update_or_create_prescriptions(prescriptions)
+        return updated_instance
 
     def get_or_create_facility(self, facility_dict):
         facility = None
@@ -219,3 +236,117 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
                 is_active=marital_status_dict["is_active"]
             )
         return marital_status
+
+    def get_or_create_appointment_type(self, appointment_type_dict):
+        try:
+            appointment_typ = AppointMentType.objects.get(remote_id=appointment_type_dict["id"])
+        except AppointMentType.DoesNotExist:
+            appointment_typ = AppointMentType.objects.create(
+                remote_id=appointment_type_dict["id"],
+                type=appointment_type_dict["type"],
+                description=appointment_type_dict["description"],
+            )
+        return appointment_typ
+
+    def get_or_create_doctor(self, doctor_dict):
+        """
+        Checks of doctor exist else it creates a user and associates it with doctor
+        """
+        try:
+            doctor = Doctor.obejcts.get(doctor_number=doctor_dict["doctor_number"])
+        except Doctor.DoesNotExist:
+            import secrets
+            user = User.objects.create_user(
+                username=doctor_dict["email"],
+                email=doctor_dict["email"],
+                password=secrets.token_hex(6),
+                first_name=doctor_dict["first_name"],
+                last_name=doctor_dict["last_name"]
+            )
+            profile = user.profile
+            profile.user_type = 'doctor'
+            doctor = Doctor.objects.create(
+                user=user,
+                doctor_number=doctor_dict["doctor_number"]
+            )
+        return doctor
+
+    def get_or_create_regimen(self, regiment_dict):
+        try:
+            regimen = ARTRegimen.objects.get(remote_id=regiment_dict["id"])
+        except ARTRegimen.DoesNotExist:
+            regimen = ARTRegimen.objects.create(
+                remote_id=regiment_dict["id"],
+                regimen_line=regiment_dict["regimen_line"],
+                regimen=regiment_dict["regimen"],
+            )
+        return regimen
+
+    def update_or_create_triads(self, triads_dict, patient_instance):
+        if triads_dict["count"] == 0:
+            return
+        for triad in triads_dict["list"]:
+            try:
+                Triad.objects.get(remote_id=triad["id"])
+                # TODO perform update
+            except Triad.DoesNotExist:
+                # create
+                Triad.objects.create(
+                    remote_id=triad["id"],
+                    patient=patient_instance,
+                    weight=triad["weight"],
+                    height=triad["height"],
+                    temperature=triad["temperature"],
+                    heart_rate=triad["heart_rate"],
+                    blood_pressure=triad["blood_pressure"]
+                )
+
+    def update_or_create_nok(self, nok_dict, patient_instance):
+        if nok_dict["count"] == 0:
+            return
+        for nok in nok_dict["list"]:
+            try:
+                PatientNextOfKeen.objects.get(remote_id=nok["id"])
+                # TODO perfome update
+            except PatientNextOfKeen.DoesNotExist:
+                # create
+                PatientNextOfKeen.objects.create(
+                    remote_id=nok["id"],
+                    patient=patient_instance,
+                    full_name=nok["full_name"],
+                    relationship=nok["relationship"],
+                    address=nok["address"],
+                    phone_number=nok["phone_number"]
+                )
+
+    def update_or_create_appointments(self, appointments_dict, patient_instance):
+        if appointments_dict["count"] == 0:
+            return
+        for appointment in appointments_dict["list"]:
+            try:
+                AppointMent.objects.get(remote_id=appointment["id"])
+                # TODO perform update
+            except AppointMent.DoesNotExist:
+                AppointMent.objects.create(
+                    remote_id=appointment["id"],
+                    patient=patient_instance,
+                    type=self.get_or_create_appointment_type(appointment["type"]),
+                    doctor=self.get_or_create_doctor(appointment["doctor"]),
+                    next_appointment_date=appointment["next_appointment_date"]
+                )
+
+    def update_or_create_prescriptions(self, prescriptions_dict, patient_instance):
+        if prescriptions_dict["count"] == 0:
+            return
+        for prescription in prescriptions_dict["list"]:
+            try:
+                PatientHivMedication.objects.get(remote_id=prescription["id"])
+                # TODO perform update
+            except PatientHivMedication.DoesNotExist:
+                PatientHivMedication.objects.create(
+                    remote_id=prescription["id"],
+                    patient=patient_instance,
+                    regimen=self.get_or_create_regimen(prescription["regimen"]),
+                    is_current=prescription["is_current"],
+                    doctor=self.get_or_create_doctor(prescription["doctor"])
+                )

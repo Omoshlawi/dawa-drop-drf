@@ -51,7 +51,8 @@ class DoctorNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = PatientNextOfKeen
-        fields = ('url', 'patient', 'full_name', 'address', 'phone_number', 'created_at', 'updated_at')
+        fields = ('url', 'patient', 'full_name', 'address',
+                  'phone_number', 'created_at', 'updated_at')
         extra_kwargs = {
             'url': {'view_name': 'patients:next-of-keen-detail'},
             'patient': {'view_name': 'patients:patient-detail'},
