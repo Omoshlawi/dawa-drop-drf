@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus
+from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus, \
+    AppointMentType
 
 
 class HealthFacilitySerializer(serializers.HyperlinkedModelSerializer):
@@ -11,12 +12,6 @@ class HealthFacilitySerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'core:facility-detail'},
             'type': {'view_name': "core:facility-type-detail"}
         }
-
-
-class EmrHealthFacilitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HealthFacility
-        fields = ('id', 'identification_code', 'name', 'type', 'longitude', 'latitude', 'address')
 
 
 class FacilityTypeSerializer(serializers.HyperlinkedModelSerializer):
@@ -98,7 +93,10 @@ class MaritalStatusSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class EmrMaritalStatusSerializer(serializers.ModelSerializer):
+class AppointMentTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = MaritalStatus
-        fields = ('id', 'status', 'description', 'is_active', 'created_at')
+        model = AppointMentType
+        fields = ('url', 'id', 'code', 'type', 'description', 'created_at')
+        extra_kwargs = {
+            'url': {'view_name': 'core:appointment-types-detail'}
+        }

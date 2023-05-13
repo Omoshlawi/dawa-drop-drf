@@ -3,8 +3,7 @@ from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 from awards.serializers import PatientProgramEnrollmentSerializer, RedemptionSerializer
 from core.models import HealthFacility, FacilityType, MaritalStatus
-from core.serializers import HealthFacilitySerializer, MaritalStatusSerializer, EmrMaritalStatusSerializer, \
-    EmrHealthFacilitySerializer
+from core.serializers import HealthFacilitySerializer, MaritalStatusSerializer
 from patients.models import PatientNextOfKeen, Patient, Triad
 
 

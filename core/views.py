@@ -5,9 +5,9 @@ from rest_framework import viewsets, permissions
 
 from users.models import Patient
 from . import permisions as custom_permissions
-from .models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus
+from .models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus, AppointMentType
 from .serializers import HealthFacilitySerializer, DeliveryModeSerializer, TransferRequestSerializer, \
-    FacilityTypeSerializer, MaritalStatusSerializer
+    FacilityTypeSerializer, MaritalStatusSerializer, AppointMentTypeSerializer
 from . import mixin
 
 
@@ -22,9 +22,14 @@ class ApiRootView(APIView):
             # "doctors_url": reverse.reverse_lazy('users:user-doctor-list', request=request),
             "deliver_agents_url": reverse.reverse_lazy('agents:agent-list', request=request),
             "marital_status": reverse.reverse_lazy('core:marital-status-list', request=request),
+            "appointment_types": reverse.reverse_lazy('core:appointment-types-list', request=request),
+            "art_regimens": reverse.reverse_lazy('medication:regimen-list', request=request),
+            "appointments": reverse.reverse_lazy('medication:appointment-list', request=request),
             # "deliver_agents_url": reverse.reverse_lazy('users:user-agent-list', request=request),
             "patients_url": reverse.reverse_lazy('patients:patient-list', request=request),
             "patients_transfer_request_url": reverse.reverse_lazy('core:transfer-request-list', request=request),
+            "patients_lab_tests": reverse.reverse_lazy('medication:test-list', request=request),
+            "patients_prescription": reverse.reverse_lazy('medication:patient-hiv-prescription-list', request=request),
             "enrollments_url": reverse.reverse_lazy('awards:enrollment-list', request=request),
             # "patients_url": reverse.reverse_lazy('users:user-patient-list', request=request),
             "health_facilities_types": reverse.reverse_lazy('core:facility-type-list', request=request),
@@ -78,3 +83,8 @@ class MaritalStatusViewSet(viewsets.ModelViewSet):
     ]
     queryset = MaritalStatus.objects.all()
     serializer_class = MaritalStatusSerializer
+
+
+class AppointMentTypeViewSet(viewsets.ModelViewSet):
+    queryset = AppointMentType.objects.all()
+    serializer_class = AppointMentTypeSerializer

@@ -4,9 +4,10 @@ from django.db import models
 # Create your models here.
 
 class AppointMent(models.Model):
+    remote_id = models.PositiveIntegerField(unique=True)
     patient = models.ForeignKey("patients.Patient", related_name='appointments', on_delete=models.CASCADE)
     type = models.ForeignKey('core.AppointMentType', related_name='appointments', on_delete=models.CASCADE)
-    doctor = models.ForeignKey('auth.User', related_name='appoints', on_delete=models.CASCADE, )
+    doctor = models.ForeignKey('doctors.Doctor', related_name='appointments', on_delete=models.CASCADE, )
     next_appointment_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
@@ -19,6 +20,7 @@ class AppointMent(models.Model):
 
 
 class HIVLabTest(models.Model):
+    remote_id = models.PositiveIntegerField(unique=True)
     appointment = models.ForeignKey(AppointMent, related_name='tests', on_delete=models.CASCADE)
     cd4_count = models.PositiveIntegerField()
     viral_load = models.PositiveIntegerField()
@@ -31,6 +33,7 @@ class HIVLabTest(models.Model):
 
 
 class ARTRegimen(models.Model):
+    remote_id = models.PositiveIntegerField(unique=True)
     regimen_line = models.CharField(max_length=50, unique=True)
     regimen = models.CharField(max_length=50, unique=True)
     created_at = models.DateTimeField(auto_now=True)
@@ -47,10 +50,11 @@ class PatientHivMedication(models.Model):
     """
     HIV prescription
     """
+    remote_id = models.PositiveIntegerField(unique=True)
     patient = models.ForeignKey('patients.Patient', related_name='prescriptions', on_delete=models.CASCADE)
     regimen = models.ForeignKey(ARTRegimen, related_name='prescriptions', on_delete=models.CASCADE)
     is_current = models.BooleanField(default=False)
-    doctor = models.ForeignKey("auth.User", related_name='prescriptions', on_delete=models.CASCADE)
+    doctor = models.ForeignKey("doctors.Doctor", related_name='prescriptions', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
