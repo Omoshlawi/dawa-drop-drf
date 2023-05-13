@@ -167,6 +167,7 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
     triads = serializers.JSONField()
     prescriptions = serializers.JSONField()
     appointments = serializers.JSONField()
+    next_of_keen = serializers.JSONField()
 
     class Meta:
         model = Patient
@@ -189,7 +190,7 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
         self.update_or_create_triads(triads, updated_instance)
         self.update_or_create_nok(next_of_keen, updated_instance)
         self.update_or_create_appointments(appointments, updated_instance)
-        self.update_or_create_prescriptions(prescriptions)
+        self.update_or_create_prescriptions(prescriptions, updated_instance)
         return updated_instance
 
     def get_or_create_facility(self, facility_dict):
@@ -253,7 +254,7 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
         Checks of doctor exist else it creates a user and associates it with doctor
         """
         try:
-            doctor = Doctor.obejcts.get(doctor_number=doctor_dict["doctor_number"])
+            doctor = Doctor.objects.get(doctor_number=doctor_dict["doctor_number"])
         except Doctor.DoesNotExist:
             import secrets
             user = User.objects.create_user(
