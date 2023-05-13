@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework import permissions
 from core import permisions as custom_permissions
+from .filterset import AppointMentFilterSet
 from .models import AppointMent, HIVLabTest, ARTRegimen, PatientHivMedication
 from .serializers import (
     AppointMentSerializer, HIVLabTestSerializer,
@@ -19,6 +20,11 @@ class AppointMentViewSet(viewsets.ModelViewSet):
         custom_permissions.IsDoctorOrPatient
     ]
     serializer_class = AppointMentSerializer
+    filterset_class = AppointMentFilterSet
+    search_fields = (
+        "doctor__user__first_name", "doctor__user__last_name",
+        "doctor__user__profile__phone_number", "doctor__doctor_number"
+    )
 
     def get_queryset(self):
         user = self.request.user
@@ -60,7 +66,11 @@ class PatientHivMedicationViewSet(viewsets.ReadOnlyModelViewSet):
         permissions.IsAuthenticated,
         custom_permissions.IsPatient
     ]
-
+    search_fields = (
+        "doctor__user__first_name", "doctor__user__last_name",
+        "doctor__user__profile__phone_number", "doctor__doctor_number",
+        "regimen__regimen", "regimen__regimen_line"
+    )
     serializer_class = PatientHivMedicationSerializer
 
     def get_queryset(self):

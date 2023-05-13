@@ -23,11 +23,19 @@ class AppointMentSerializer(serializers.HyperlinkedModelSerializer):
             'created_at', 'updated_at'
         )
         extra_kwargs = {
-            'url': {'view_name': 'appointment-detail'},
+            'url': {'view_name': 'medication:appointment-detail'},
             'patient': {'view_name': 'patients:patient-detail'},
             'type': {'view_name': 'core:appointment-types-detail'},
             'doctor': {'view_name': 'doctors:doctor-detail'},
         }
+
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        from users.serializers import PublicProfileSerializer
+        _dict.update({
+            'doctor': PublicProfileSerializer(instance=instance.doctor.user.profile, context=self.context).data
+        })
+        return _dict
 
 
 class ARTRegimenSerializer(serializers.HyperlinkedModelSerializer):
@@ -51,13 +59,13 @@ class PatientHivMedicationSerializer(serializers.HyperlinkedModelSerializer):
         }
 
     def to_representation(self, instance):
+        from users.serializers import PublicProfileSerializer
         _dict = super().to_representation(instance)
-        regimen = _dict.pop("regimen")
-        regimen_obje = {
+        _dict.update({
+            'doctor': PublicProfileSerializer(instance=instance.doctor.user.profile, context=self.context).data,
             'regimen': ARTRegimenSerializer(
                 instance=instance.regimen,
                 context=self.context
             ).data if instance.regimen else None
-        }
-        _dict.update(regimen_obje)
+        })
         return _dict
