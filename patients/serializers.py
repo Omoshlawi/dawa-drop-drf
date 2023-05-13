@@ -6,7 +6,7 @@ from awards.serializers import PatientProgramEnrollmentSerializer, RedemptionSer
 from core.models import HealthFacility, FacilityType, MaritalStatus, AppointMentType
 from core.serializers import HealthFacilitySerializer, MaritalStatusSerializer
 from doctors.models import Doctor
-from medication.models import AppointMent, PatientHivMedication, ARTRegimen
+from medication.models import AppointMent, PatientHivMedication, ARTRegimen, HIVLabTest
 from patients.models import PatientNextOfKeen, Patient, Triad
 
 
@@ -324,15 +324,30 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
             return
         for appointment in appointments_dict["list"]:
             try:
-                AppointMent.objects.get(remote_id=appointment["id"])
+                appointment_instance = AppointMent.objects.get(remote_id=appointment["id"])
                 # TODO perform update
             except AppointMent.DoesNotExist:
-                AppointMent.objects.create(
+                appointment_instance = AppointMent.objects.create(
                     remote_id=appointment["id"],
                     patient=patient_instance,
                     type=self.get_or_create_appointment_type(appointment["type"]),
                     doctor=self.get_or_create_doctor(appointment["doctor"]),
                     next_appointment_date=appointment["next_appointment_date"]
+                )
+            self.update_or_create_hiv_lab_test(appointment["tests"], appointment_instance)
+
+    def update_or_create_hiv_lab_test(self, tests_dict, appointment_instance):
+        if tests_dict["count"] == 0:
+            return
+        for test in tests_dict["list"]:
+            try:
+                HIVLabTest.objects.get(remote_id=test["id"])
+            except HIVLabTest.DoesNotExist:
+                HIVLabTest.objects.create(
+                    remote_id=test["id"],
+                    appointment=appointment_instance,
+                    cd4_count=test["cd4_count"],
+                    viral_load=test["viral_load"]
                 )
 
     def update_or_create_prescriptions(self, prescriptions_dict, patient_instance):
