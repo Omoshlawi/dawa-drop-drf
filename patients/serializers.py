@@ -109,6 +109,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
                 context=self.context
             ).data if instance.marital_status else None
         }
+
         _dict.update(marital_status_obj)
         _dict.update(triads_obj)
         _dict.update(nok_obj)
