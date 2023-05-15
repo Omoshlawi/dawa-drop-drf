@@ -7,6 +7,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 class Order(models.Model):
     patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, related_name='orders')
     reach_out_phone_number = PhoneNumberField(null=True, blank=True)
+    appointment = models.OneToOneField("medication.Appointment", on_delete=models.CASCADE, null=True, blank=True)
     # todo think of the cascade
     delivery_mode = models.ForeignKey(
         "core.DeliveryMode",

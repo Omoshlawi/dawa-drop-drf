@@ -109,3 +109,18 @@ class DeliveryTimeSlot(models.Model):
 
     def __str__(self):
         return self.slot
+
+
+class RefillScheme(models.Model):
+    scheme = models.CharField(max_length=50)
+    time = models.PositiveIntegerField()
+    units = models.CharField(
+        max_length=20,
+        default="days",
+        choices=(
+            ('days', 'days'),
+            ('weeks', 'weeks'),
+        )
+    )
+    def __str__(self):
+        return self.scheme

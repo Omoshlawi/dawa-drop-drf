@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus, \
-    AppointMentType, DeliveryTimeSlot
+    AppointMentType, DeliveryTimeSlot, RefillScheme
 
 
 # Register your models here.
@@ -48,3 +48,8 @@ class AppointMentTypeAdmin(admin.ModelAdmin):
 @admin.register(DeliveryTimeSlot)
 class DeliveryTimeSlotAdmin(admin.ModelAdmin):
     list_display = ('slot', 'start', 'end', 'description')
+
+
+@admin.register(RefillScheme)
+class RefillSchemeAdmin(admin.ModelAdmin):
+    list_display = ('scheme', 'time', 'units')

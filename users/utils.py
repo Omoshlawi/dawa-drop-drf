@@ -1,6 +1,9 @@
+from django.conf import settings
+
 from patients.models import Patient
 from patients.serializers import PatientAddUpdateSerializer
 from users.serializers import UserSerializer, ProfileSerializer
+import requests
 
 
 def obscure_email(email):
@@ -33,3 +36,6 @@ def update_patient(patient, request):
     patient = patient_serializer.save()
 
 
+def post_appointment_to_emr(data: dict):
+    print("utils api", data)
+    return requests.post(f"{settings.EMR_BASE_URL}medication/appointments/", data=data)

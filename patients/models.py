@@ -21,6 +21,9 @@ class Patient(models.Model):
         "core.HealthFacility", on_delete=models.CASCADE,
         null=True, blank=True, related_name='patients'
     )
+    refill_scheme = models.ForeignKey(
+        "core.RefillScheme", on_delete=models.CASCADE, null=True, blank=True
+    )
     county_of_residence = models.CharField(max_length=50, null=True, blank=True)
     occupation = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now=True)
@@ -110,5 +113,3 @@ class Triad(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-
-

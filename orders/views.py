@@ -1,14 +1,18 @@
 import secrets
 
-from rest_framework import permissions
+from rest_framework import permissions, status
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.response import Response
+
+from users.utils import post_appointment_to_emr
 from . import mixin
 from core import permisions as custom_permissions
 from users.models import Doctor, Patient
 from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
 from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer, AgentTripSerializer
+from django.utils import timezone
 
 
 # Create your views here.
@@ -35,8 +39,47 @@ class OrderViewSet(viewsets.ModelViewSet):
             4.Create an order and link it to the new appontment appointment
         """
         patient = Patient.objects.get_or_create(user=self.request.user)[0]
+        # 1.Get due appointment by next date pointing to today or tomorow
+        today = timezone.now().date()
+        days = timezone.timedelta(days=1)
+        tomorrow = today + days
+        appointments = patient.appointments.filter(next_appointment_date__range=(today, tomorrow))
+        if not appointments.exists():
+            # TODO give more meaningful message
+            raise PermissionDenied(
+                detail="You are not eligible for making an Order"
+            )
+        appointment = appointments.first()
+        # Check if user is in any scheme
+        refill_scheme = patient.refill_scheme
+        next_appointment_date = None
+        if refill_scheme:
+            refill_delter = timezone.timedelta(**{refill_scheme.units: refill_scheme.time})
+            next_appointment_date = appointment.next_appointment_date + refill_delter
+        resp = post_appointment_to_emr({
+            'previous_appointment': appointment.remote_id,
+            'next_appointment_date': next_appointment_date
+        })
+        # Check if remote creation success
+        # print("*******************************  ", resp.json())
+        if resp.status_code != status.HTTP_201_CREATED:
+            raise PermissionDenied(
+                detail="Couldn't create to the server"
+            )
+        data = resp.json()
+        new_appointment = self.create_appointment(data, appointment)
+        serializer.save(patient=patient, appointment=new_appointment)
 
-        serializer.save(patient=patient)
+    def create_appointment(self, appointment_dict, curr_appointment):
+        from medication.models import AppointMent
+        new_appointment = AppointMent.objects.create(
+            remote_id=appointment_dict["id"],
+            patient=curr_appointment.patient,
+            type=curr_appointment.type,
+            doctor=curr_appointment.doctor,
+            next_appointment_date=appointment_dict["next_appointment_date"]
+        )
+        return new_appointment
 
     @action(detail=False, methods=['GET'])
     def pending(self, request, *args, **kwargs):
