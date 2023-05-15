@@ -10,8 +10,8 @@ from users.utils import post_appointment_to_emr
 from . import mixin
 from core import permisions as custom_permissions
 from users.models import Doctor, Patient
-from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
-from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer, AgentTripSerializer
+from .models import Order, Delivery, DeliveryFeedBack
+from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer
 from django.utils import timezone
 
 
@@ -22,10 +22,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
         custom_permissions.IsPatient,
+        custom_permissions.HasRelatedUserType
     ]
 
     def get_queryset(self):
-        return Order.objects.filter(patient__user=self.request.user)
+        return Order.objects.filter(appointment__patient__user=self.request.user)
 
     def get_time_range(self):
         today = timezone.now().date()
@@ -85,7 +86,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         data = resp.json()
         new_appointment = self.create_appointment(data, appointment)
 
-        serializer.save(patient=patient, appointment=new_appointment)
+        serializer.save(appointment=new_appointment)
 
     def create_appointment(self, appointment_dict, curr_appointment):
         from medication.models import AppointMent
@@ -117,7 +118,8 @@ class DeliveryViewSet(viewsets.ModelViewSet):
     serializer_class = DeliverySerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        custom_permissions.IsDoctorOrReadOnly
+        custom_permissions.IsDoctorOrReadOnly,
+        custom_permissions.HasRelatedUserType
     ]
 
     def perform_create(self, serializer):
@@ -134,14 +136,9 @@ class DeliveryFeedBackViewSet(viewsets.ModelViewSet):
     serializer_class = DeliveryFeedBackSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        custom_permissions.IsPatient
+        custom_permissions.IsPatient,
+        custom_permissions.HasRelatedUserType
     ]
 
     def get_queryset(self):
-        return DeliveryFeedBack.objects.filter(delivery__order__patient__user=self.request.user)
-
-
-class AgentTripViewSet(viewsets.ModelViewSet, mixin.RouteMixin):
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = AgentTrip.objects.all()
-    serializer_class = AgentTripSerializer
+        return DeliveryFeedBack.objects.filter(delivery__order__appointment__patient__user=self.request.user)

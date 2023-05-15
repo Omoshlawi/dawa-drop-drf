@@ -28,7 +28,7 @@ class HIVLabTestAdmin(admin.ModelAdmin):
 
 @admin.register(ARTRegimen)
 class ARTRegimenAdmin(admin.ModelAdmin):
-    list_display = ('regimen_line', 'regimen', 'created_at', 'updated_at')
+    list_display = ('id', 'regimen_line', 'regimen', 'created_at', 'updated_at')
 
 
 @admin.register(PatientHivMedication)

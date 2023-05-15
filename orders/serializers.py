@@ -6,64 +6,8 @@ from agents.models import DeliverAgent
 from awards.models import LoyaltyProgram
 from patients.models import Patient
 from users.serializers import PublicProfileSerializer
-from .models import Order, Delivery, DeliveryFeedBack, AgentTrip
-
-
-class AgentTripSerializer(serializers.HyperlinkedModelSerializer):
-    current_location = serializers.SerializerMethodField()
-    destination = serializers.SerializerMethodField()
-    agent = serializers.SerializerMethodField()
-    trip_id = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
-    route_url = serializers.SerializerMethodField()
-
-    def get_route_url(self, instance):
-        return reverse(
-            viewname='orders:trip-route',
-            args=[instance.id],
-            request=self.context.get('request')
-        )
-
-    def get_status(self, instance):
-        return instance.status
-
-    def get_trip_id(self, instance):
-        return instance.get_id()
-
-    def get_agent(self, instance):
-        return PublicProfileSerializer(
-            instance=instance.delivery.delivery_agent.user.profile,
-            context=self.context
-        ).data
-
-    def get_current_location(self, instance):
-        return {
-            "latitude": instance.latitude,
-            "longitude": instance.longitude
-        }
-
-    def get_destination(self, instance):
-        return {
-            "latitude": instance.delivery.order.latitude,
-            "longitude": instance.delivery.order.longitude
-        }
-
-    class Meta:
-        model = AgentTrip
-        fields = (
-            'url', 'trip_id', 'delivery', 'status', 'current_location',
-            'latitude', 'longitude', 'route_url',
-            'destination', 'agent', 'created_at', 'updated_at'
-        )
-        extra_kwargs = {
-            'delivery': {
-                'view_name': 'orders:delivery-detail',
-                'queryset': Delivery.objects.filter(feedback__isnull=True)
-            },
-            'url': {'view_name': 'orders:trip-detail'},
-            'latitude': {'write_only': True},
-            'longitude': {'write_only': True},
-        }
+from .models import Order, Delivery, DeliveryFeedBack
+from medication.serializers import AppointMentSerializer, ARTRegimenSerializer
 
 
 class DeliverySerializer(serializers.HyperlinkedModelSerializer):
@@ -71,9 +15,9 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     Only allows undelivered goods delivery
     """
     delivery_id = serializers.SerializerMethodField()
-    doctor = serializers.SerializerMethodField()
     agent = serializers.SerializerMethodField()
-    trip = AgentTripSerializer(read_only=True)
+    doctor = serializers.SerializerMethodField()
+    prescription = ARTRegimenSerializer(read_only=True)
 
     def get_delivery_id(self, instance):
         return instance.get_id()
@@ -84,37 +28,32 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
             context=self.context
         ).data
 
+
     def get_doctor(self, instance):
         return PublicProfileSerializer(
-            instance=instance.doctor.user.profile,
+            instance=instance.order.appointment.doctor.user.profile,
             context=self.context
         ).data
 
     class Meta:
         model = Delivery
         fields = [
-            'url', 'delivery_id', 'order', 'trip',
+            'url', 'delivery_id', 'order', 'prescription',
             # 'code',
-            'created_at', 'agent',
-            'delivery_medicine', 'instruction',
-            'delivery_agent', 'doctor'
+            'created_at', 'agent', 'doctor'
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:delivery-detail'},
+            # 'prescription': {'view_name': 'medication:regimen-detail'},
             'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
             # 'code': {'read_only': True},
-            'delivery_agent': {
-                'view_name': 'agents:agent-detail',
-                'write_only': True,
-                'queryset': DeliverAgent.objects.filter(is_approved=True)
-            },
         }
 
 
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
     order_id = serializers.SerializerMethodField()
     is_delivered = serializers.SerializerMethodField()
-    is_approved = serializers.SerializerMethodField()
+    is_allocated = serializers.SerializerMethodField()
     delivery = DeliverySerializer(read_only=True)
 
     def get_order_id(self, instance):
@@ -123,23 +62,39 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
     def get_is_delivered(self, instance):
         return instance.is_delivered
 
-    def get_is_approved(self, instance):
-        return instance.is_approved
+    def get_is_allocated(self, instance):
+        return instance.is_allocated
 
     class Meta:
         model = Order
         fields = [
-            'url', 'order_id', 'patient', 'delivery_mode', 'time_slot',
+            'url', 'order_id', 'delivery_mode', 'time_slot',  # 'appointment',
             'reach_out_phone_number', 'longitude', 'latitude',
-            'address', 'is_delivered', 'is_approved', 'delivery', 'created_at', 'updated_at'
+            'address', 'is_delivered', 'is_allocated', 'delivery', 'created_at', 'updated_at'
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:order-detail', 'read_only': True},
-            'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
             'delivery': {'view_name': 'orders:delivery-detail', 'read_only': True},
             'delivery_mode': {'view_name': 'core:mode-detail'},
             'time_slot': {'view_name': 'core:time-slot-detail'},
+            # 'appointment': {'read_only': True, 'view_name': 'medication:appointment-detail'}
         }
+
+    def to_representation(self, instance):
+        from core.serializers import DeliveryModeSerializer, DeliveryTimeSlotSerializer
+        _dict = super().to_representation(instance)
+        _dict.update({
+            'delivery_mode': DeliveryModeSerializer(
+                instance=instance.delivery_mode, context=self.context
+            ).data if instance.delivery_mode else None,
+            'time_slot': DeliveryTimeSlotSerializer(
+                instance=instance.time_slot, context=self.context
+            ).data if instance.time_slot else None,
+            # 'appointment': AppointMentSerializer(
+            #     instance=instance.appointment, context=self.context
+            # ).data if instance.appointment else None
+        })
+        return _dict
 
 
 class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
@@ -160,7 +115,7 @@ class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
         try:
             delivery = Delivery.objects.get(
                 code=attr,
-                order__patient__user=self.context.get('request').user
+                order__appointment__patient__user=self.context.get('request').user
             )
             if DeliveryFeedBack.objects.filter(delivery=delivery).exists():
                 raise ValidationError("Invalid Code, the code has been used")

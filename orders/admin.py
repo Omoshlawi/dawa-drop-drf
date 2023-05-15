@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from orders.models import Order, Delivery, DeliveryFeedBack, AgentTrip
+from orders.models import Order, Delivery, DeliveryFeedBack
 
 
 # Register your models here.
@@ -9,7 +9,7 @@ from orders.models import Order, Delivery, DeliveryFeedBack, AgentTrip
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        'patient', 'reach_out_phone_number', 'delivery_mode', 'time_slot',
+        'appointment', 'reach_out_phone_number', 'delivery_mode', 'time_slot',
         'longitude', 'latitude', 'address', 'created_at', 'updated_at'
     )
 
@@ -17,10 +17,9 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(Delivery)
 class DeliveryAdmin(admin.ModelAdmin):
     list_display = (
-        'order', 'code', 'created_at', 'delivery_medicine', 'doctor', 'delivery_agent', 'instruction'
+        'order', 'code', 'created_at', 'delivery_agent', 'longitude', 'latitude', 'status'
     )
-    list_editable = ('delivery_medicine', 'instruction', 'delivery_agent')
-    list_filter = ('order__patient',)
+    list_filter = ('order__appointment__patient',)
 
 
 @admin.register(DeliveryFeedBack)
@@ -28,9 +27,5 @@ class DeliveryFeedBackAdmin(admin.ModelAdmin):
     list_display = (
         'delivery', 'review', 'rating', 'created_at'
     )
-    list_filter = ('delivery__order__patient',)
+    list_filter = ('delivery__order__appointment__patient',)
 
-
-@admin.register(AgentTrip)
-class AgentTripAdmin(admin.ModelAdmin):
-    list_display = ('delivery', 'created_at', 'updated_at', 'longitude', 'latitude')

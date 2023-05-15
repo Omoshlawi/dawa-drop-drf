@@ -65,7 +65,8 @@ class Patient(models.Model):
 
     @property
     def total_points(self):
-        total_points = self.orders.all().aggregate(
+        from orders.models import Order
+        total_points = Order.objects.filter(appointment__patient=self).aggregate(
             Sum('delivery__feedback__points_awarded')
         )['delivery__feedback__points_awarded__sum']
         points = total_points if total_points else 0

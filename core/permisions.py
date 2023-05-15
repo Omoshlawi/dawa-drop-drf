@@ -120,3 +120,19 @@ class IsDoctorOrPatient(BasePermission):
                 request.user.profile.user_type == 'patient' or
                 request.user.profile.user_type == 'doctor'
         )
+
+
+class HasRelatedUserType(BasePermission):
+    def has_permission(self, request, view):
+        return (
+                request.user and
+                request.user.is_authenticated and
+                request.user.profile.has_related_user_type
+        )
+
+    def has_object_permission(self, request, view, obj):
+        return (
+                request.user and
+                request.user.is_authenticated and
+                request.user.profile.has_related_user_type
+        )
