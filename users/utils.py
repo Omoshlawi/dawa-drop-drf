@@ -37,5 +37,4 @@ def update_patient(patient, request):
 
 
 def post_appointment_to_emr(data: dict):
-    print("utils api", data)
     return requests.post(f"{settings.EMR_BASE_URL}medication/appointments/", data=data)

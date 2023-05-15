@@ -137,7 +137,7 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'orders:order-detail', 'read_only': True},
             'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
             'delivery': {'view_name': 'orders:delivery-detail', 'read_only': True},
-            'delivery_mode': {'view_name': 'core:mode-detail', 'read_only': True},
+            'delivery_mode': {'view_name': 'core:mode-detail'},
             'time_slot': {'view_name': 'core:time-slot-detail'},
         }
 

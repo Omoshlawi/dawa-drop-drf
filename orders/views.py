@@ -27,6 +27,12 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Order.objects.filter(patient__user=self.request.user)
 
+    def get_time_range(self):
+        today = timezone.now().date()
+        days = timezone.timedelta(days=1)
+        tomorrow = today + days
+        return today, tomorrow
+
     def perform_create(self, serializer):
         """
             Order creation steps
@@ -39,13 +45,14 @@ class OrderViewSet(viewsets.ModelViewSet):
             4.Create an order and link it to the new appontment appointment
         """
         patient = Patient.objects.get_or_create(user=self.request.user)[0]
-        # 1.Get due appointment by next date pointing to today or tomorow
-        today = timezone.now().date()
-        days = timezone.timedelta(days=1)
-        tomorrow = today + days
-        appointments = patient.appointments.filter(next_appointment_date__range=(today, tomorrow))
+        # 1.Get current patient due appointment of type refill where next date is
+        # pointing to today or tomorrow
+        appointments = patient.appointments.filter(
+            next_appointment_date__range=self.get_time_range(),
+            type__type='Refill'
+        )
+        # if none raise ineligible
         if not appointments.exists():
-            # TODO give more meaningful message
             raise PermissionDenied(
                 detail="You are not eligible for making an Order"
             )
@@ -54,8 +61,17 @@ class OrderViewSet(viewsets.ModelViewSet):
         refill_scheme = patient.refill_scheme
         next_appointment_date = None
         if refill_scheme:
-            refill_delter = timezone.timedelta(**{refill_scheme.units: refill_scheme.time})
-            next_appointment_date = appointment.next_appointment_date + refill_delter
+            refill_delta = timezone.timedelta(**{refill_scheme.units: refill_scheme.time})
+            next_appointment_date = appointment.next_appointment_date + refill_delta
+            # Make sure no other refill appointment in the same date
+            if patient.appointments.filter(
+                    next_appointment_date=next_appointment_date,
+                    type__type='Refill'
+            ).exists():
+                raise PermissionDenied(
+                    detail="Order already made"
+                )
+
         resp = post_appointment_to_emr({
             'previous_appointment': appointment.remote_id,
             'next_appointment_date': next_appointment_date
@@ -68,6 +84,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             )
         data = resp.json()
         new_appointment = self.create_appointment(data, appointment)
+
         serializer.save(patient=patient, appointment=new_appointment)
 
     def create_appointment(self, appointment_dict, curr_appointment):
