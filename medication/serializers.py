@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import AppointMent, HIVLabTest, ARTRegimen, PatientHivMedication
-
+from core.serializers import AppointMentTypeSerializer
 
 class HIVLabTestSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -33,7 +33,8 @@ class AppointMentSerializer(serializers.HyperlinkedModelSerializer):
         _dict = super().to_representation(instance)
         from users.serializers import PublicProfileSerializer
         _dict.update({
-            'doctor': PublicProfileSerializer(instance=instance.doctor.user.profile, context=self.context).data
+            'doctor': PublicProfileSerializer(instance=instance.doctor.user.profile, context=self.context).data,
+            'type': AppointMentTypeSerializer(instance=instance.type, context=self.context).data
         })
         return _dict
 
