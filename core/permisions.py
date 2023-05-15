@@ -123,6 +123,8 @@ class IsDoctorOrPatient(BasePermission):
 
 
 class HasRelatedUserType(BasePermission):
+    message = "You do not have permission to perform this action, create your profile first."
+
     def has_permission(self, request, view):
         return (
                 request.user and

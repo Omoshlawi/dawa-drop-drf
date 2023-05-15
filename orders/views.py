@@ -113,13 +113,28 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class DeliveryRequestViewSet(viewsets.ModelViewSet):
+class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeliveryRequestSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        custom_permissions.IsAgentOrReadOnly,
+        custom_permissions.IsAgent,
         custom_permissions.HasRelatedUserType
     ]
+
+    @action(detail=True, url_path='accept', url_name='accept', methods=['get'])
+    def accept(self, request, *args, **kwargs):
+        random_string = secrets.token_hex(16)
+        while Delivery.objects.filter(code=random_string).exists():
+            random_string = secrets.token_hex(16)
+        order = self.get_object()
+        delivery = Delivery.objects.create(
+            order=order,
+            code=random_string,
+            prescription=order.appointment.patient.current_prescription.regimen,
+            delivery_agent=self.request.user.agent
+        )
+        serializer = DeliverySerializer(instance=delivery, context={'request': request})
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         return Order.objects.filter(delivery__isnull=True)

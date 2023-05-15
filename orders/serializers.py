@@ -14,11 +14,23 @@ from core.serializers import DeliveryModeSerializer, DeliveryTimeSlotSerializer
 class DeliveryRequestSerializer(serializers.ModelSerializer):
     delivery_mode = DeliveryModeSerializer(read_only=True)
     time_slot = DeliveryTimeSlotSerializer(read_only=True)
+    accept_url = serializers.SerializerMethodField()
+    destination = serializers.SerializerMethodField()
+
+    def get_destination(self, instance):
+        return {'latitude': instance.latitude, 'longitude': instance.longitude}
+
+    def get_accept_url(self, instance):
+        return reverse(
+            'orders:delivery-request-accept',
+            args=[instance.id],
+            request=self.context.get('request')
+        )
 
     class Meta:
         model = Order
         fields = (
-            "longitude", 'latitude', 'address',
+            'destination', 'address', 'accept_url',
             'delivery_mode', 'time_slot', 'created_at'
         )
 
@@ -31,6 +43,10 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     agent = serializers.SerializerMethodField()
     doctor = serializers.SerializerMethodField()
     prescription = ARTRegimenSerializer(read_only=True)
+    destination = serializers.SerializerMethodField()
+
+    def get_destination(self, instance):
+        return {'latitude': instance.order.latitude, 'longitude': instance.order.longitude}
 
     def get_delivery_id(self, instance):
         return instance.get_id()
@@ -50,7 +66,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Delivery
         fields = [
-            'url', 'delivery_id', 'order', 'prescription',
+            'url', 'delivery_id', 'order', 'prescription', 'destination',
             # 'code',
             'created_at', 'agent', 'doctor'
         ]
