@@ -73,6 +73,7 @@ class Delivery(models.Model):
             ('canceled', 'canceled'),
         )
     )
+    time_started = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_id(self):

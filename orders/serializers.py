@@ -35,6 +35,16 @@ class DeliveryRequestSerializer(serializers.ModelSerializer):
         )
 
 
+class DeliveryStartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Delivery
+        fields = ('longitude', 'latitude')
+        extra_kwargs = {
+            'longitude': {'required': True},
+            'latitude': {'required': True},
+        }
+
+
 class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     """
     Only allows undelivered goods delivery
@@ -44,6 +54,20 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     doctor = serializers.SerializerMethodField()
     prescription = ARTRegimenSerializer(read_only=True)
     destination = serializers.SerializerMethodField()
+    start_url = serializers.SerializerMethodField()
+    cancel_url = serializers.SerializerMethodField()
+
+    def get_start_url(self, instance):
+        return reverse(
+            'orders:delivery-start', args=[instance.id],
+            request=self.context.get('request')
+        )
+
+    def get_cancel_url(self, instance):
+        return reverse(
+            'orders:delivery-cancel', args=[instance.id],
+            request=self.context.get('request')
+        )
 
     def get_destination(self, instance):
         return {'latitude': instance.order.latitude, 'longitude': instance.order.longitude}
@@ -67,6 +91,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
         model = Delivery
         fields = [
             'url', 'delivery_id', 'order', 'prescription', 'destination',
+            'start_url','cancel_url',
             # 'code',
             'created_at', 'agent', 'doctor'
         ]

@@ -11,7 +11,8 @@ from . import mixin
 from core import permisions as custom_permissions
 from users.models import Doctor, Patient
 from .models import Order, Delivery, DeliveryFeedBack
-from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer, DeliveryRequestSerializer
+from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer, DeliveryRequestSerializer, \
+    DeliveryStartSerializer
 from django.utils import timezone
 
 
@@ -147,6 +148,35 @@ class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
         # create delivery object
         doctor = Doctor.objects.get_or_create(user=self.request.user)[0]
         serializer.save(code=random_string, doctor=doctor)
+
+
+class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DeliverySerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsAgent,
+        custom_permissions.HasRelatedUserType
+    ]
+
+    def get_queryset(self):
+        return self.request.user.agent.deliveries.all()
+
+    @action(detail=True, url_path='start', url_name='start', methods=['post'], serializer_class=DeliveryStartSerializer)
+    def start(self, request, *args, **kwargs):
+        delivery = self.get_object()
+        if delivery.status != 'in_progress':
+            serializer = self.get_serializer(instance=delivery, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            delivery = serializer.save(status='in_progress', time_started=timezone.now())
+        return Response(data=DeliverySerializer(instance=delivery, context={'request': request}).data)
+
+    @action(detail=True, url_path='cancel', url_name='cancel', methods=['get'])
+    def cancel(self, request, *args, **kwargs):
+        delivery = self.get_object()
+        if delivery.status == 'in_progress':
+            delivery.status = 'canceled'
+            delivery.save()
+        return Response(data={'detail': "Delivery canceled successfully"}, status=status.HTTP_200_OK)
 
 
 class DeliveryFeedBackViewSet(viewsets.ModelViewSet):
