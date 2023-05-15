@@ -56,6 +56,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     destination = serializers.SerializerMethodField()
     start_url = serializers.SerializerMethodField()
     cancel_url = serializers.SerializerMethodField()
+    route_url = serializers.SerializerMethodField()
 
     def get_start_url(self, instance):
         return reverse(
@@ -66,6 +67,12 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     def get_cancel_url(self, instance):
         return reverse(
             'orders:delivery-cancel', args=[instance.id],
+            request=self.context.get('request')
+        )
+
+    def get_route_url(self, instance):
+        return reverse(
+            'orders:delivery-route', args=[instance.id],
             request=self.context.get('request')
         )
 
@@ -91,7 +98,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
         model = Delivery
         fields = [
             'url', 'delivery_id', 'order', 'prescription', 'destination',
-            'start_url','cancel_url',
+            'start_url', 'cancel_url', 'time_started', 'route_url',
             # 'code',
             'created_at', 'agent', 'doctor'
         ]

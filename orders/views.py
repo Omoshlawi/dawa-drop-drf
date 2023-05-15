@@ -15,6 +15,8 @@ from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSe
     DeliveryStartSerializer
 from django.utils import timezone
 
+from .utils import get_route_polyline
+
 
 # Create your views here.
 
@@ -140,15 +142,6 @@ class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return Order.objects.filter(delivery__isnull=True)
 
-    def perform_create(self, serializer):
-        random_string = secrets.token_hex(16)
-        # make sure its unique
-        while Delivery.objects.filter(code=random_string).exists():
-            random_string = secrets.token_hex(16)
-        # create delivery object
-        doctor = Doctor.objects.get_or_create(user=self.request.user)[0]
-        serializer.save(code=random_string, doctor=doctor)
-
 
 class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeliverySerializer
@@ -177,6 +170,20 @@ class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):
             delivery.status = 'canceled'
             delivery.save()
         return Response(data={'detail': "Delivery canceled successfully"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, url_path='route', url_name='route', methods=['get'])
+    def route(self, request, *args, **kwargs):
+        delivery = self.get_object()
+        if delivery.status == 'in_progress':
+            geojson = get_route_polyline(
+                {'latitude': delivery.latitude, 'longitude': delivery.longitude},
+                {'latitude': delivery.order.latitude, 'longitude': delivery.order.longitude}
+            )
+            return Response(data=geojson)
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={'detail': 'You must start the delivery to get the route'}
+        )
 
 
 class DeliveryFeedBackViewSet(viewsets.ModelViewSet):
