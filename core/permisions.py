@@ -136,3 +136,19 @@ class HasRelatedUserType(BasePermission):
                 request.user.is_authenticated and
                 request.user.profile.has_related_user_type
         )
+
+
+class HasCurrentPrescription(IsPatient):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and request.user.patient.current_prescription
+
+    def has_object_permission(self, request, view, obj):
+        super().has_object_permission(request, view, obj) and request.user.patient.current_prescription
+
+
+class HasCurrentEnrolledProgram(IsPatient):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and request.user.patient.current_program_enrollment
+
+    def has_object_permission(self, request, view, obj):
+        super().has_object_permission(request, view, obj) and request.user.patient.current_program_enrollment

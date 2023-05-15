@@ -42,7 +42,7 @@ class Order(models.Model):
 
     @property
     def is_allocated(self):
-        return bool(Delivery.objects.filter(order=self))
+        return Delivery.objects.filter(order=self).exists()
 
     class Meta:
         ordering = ['-created_at']

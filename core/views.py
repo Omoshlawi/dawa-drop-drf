@@ -40,12 +40,13 @@ class ApiRootView(APIView):
             "delivery_modes_url": reverse.reverse_lazy('core:mode-list', request=request),
             "orders_url": reverse.reverse_lazy('orders:order-list', request=request),
             "feedback_url": reverse.reverse_lazy('orders:feedback-list', request=request),
-            "delivery_url": reverse.reverse_lazy('orders:delivery-list', request=request),
+            "delivery_url": reverse.reverse_lazy('orders:delivery-request-list', request=request),
         })
 
 
 class HealthFacilityViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny, custom_permissions.IsDoctorOrReadOnly]
+    permission_classes = [permissions.AllowAny,
+                          custom_permissions.IsDoctorOrReadOnly]
     queryset = HealthFacility.objects.all()
     serializer_class = HealthFacilitySerializer
 

@@ -11,7 +11,7 @@ from . import mixin
 from core import permisions as custom_permissions
 from users.models import Doctor, Patient
 from .models import Order, Delivery, DeliveryFeedBack
-from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer
+from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer, DeliveryRequestSerializer
 from django.utils import timezone
 
 
@@ -113,14 +113,16 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class DeliveryViewSet(viewsets.ModelViewSet):
-    queryset = Delivery.objects.all()
-    serializer_class = DeliverySerializer
+class DeliveryRequestViewSet(viewsets.ModelViewSet):
+    serializer_class = DeliveryRequestSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        custom_permissions.IsDoctorOrReadOnly,
+        custom_permissions.IsAgentOrReadOnly,
         custom_permissions.HasRelatedUserType
     ]
+
+    def get_queryset(self):
+        return Order.objects.filter(delivery__isnull=True)
 
     def perform_create(self, serializer):
         random_string = secrets.token_hex(16)

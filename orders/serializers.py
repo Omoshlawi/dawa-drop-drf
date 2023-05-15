@@ -8,6 +8,19 @@ from patients.models import Patient
 from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack
 from medication.serializers import AppointMentSerializer, ARTRegimenSerializer
+from core.serializers import DeliveryModeSerializer, DeliveryTimeSlotSerializer
+
+
+class DeliveryRequestSerializer(serializers.ModelSerializer):
+    delivery_mode = DeliveryModeSerializer(read_only=True)
+    time_slot = DeliveryTimeSlotSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = (
+            "longitude", 'latitude', 'address',
+            'delivery_mode', 'time_slot', 'created_at'
+        )
 
 
 class DeliverySerializer(serializers.HyperlinkedModelSerializer):
@@ -28,7 +41,6 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
             context=self.context
         ).data
 
-
     def get_doctor(self, instance):
         return PublicProfileSerializer(
             instance=instance.order.appointment.doctor.user.profile,
@@ -43,7 +55,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
             'created_at', 'agent', 'doctor'
         ]
         extra_kwargs = {
-            'url': {'view_name': 'orders:delivery-detail'},
+            'url': {'view_name': 'orders:delivery-request-detail'},
             # 'prescription': {'view_name': 'medication:regimen-detail'},
             'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
             # 'code': {'read_only': True},
@@ -74,7 +86,7 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:order-detail', 'read_only': True},
-            'delivery': {'view_name': 'orders:delivery-detail', 'read_only': True},
+            'delivery': {'view_name': 'orders:delivery-request-detail', 'read_only': True},
             'delivery_mode': {'view_name': 'core:mode-detail'},
             'time_slot': {'view_name': 'core:time-slot-detail'},
             # 'appointment': {'read_only': True, 'view_name': 'medication:appointment-detail'}
@@ -115,20 +127,23 @@ class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
         try:
             delivery = Delivery.objects.get(
                 code=attr,
-                order__appointment__patient__user=self.context.get('request').user
+                order__appointment__patient__user=self.context.get(
+                    'request').user
             )
             if DeliveryFeedBack.objects.filter(delivery=delivery).exists():
                 raise ValidationError("Invalid Code, the code has been used")
             return attr
         except Delivery.DoesNotExist:
-            raise ValidationError("Invalid code, please scan again or type manually")
+            raise ValidationError(
+                "Invalid code, please scan again or type manually")
 
     def create(self, validated_data):
         user = self.context.get('request').user
         patient = Patient.objects.get_or_create(user=user)[0]
         enrollment = patient.current_program_enrollment
         if enrollment is not None:
-            validated_data.update({'points_awarded': enrollment.program.unit_point})
+            validated_data.update(
+                {'points_awarded': enrollment.program.unit_point})
         code = validated_data.pop('code')
         delivery = Delivery.objects.get(code=code)
         validated_data.update({'delivery': delivery})

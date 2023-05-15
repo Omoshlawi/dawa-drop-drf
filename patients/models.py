@@ -33,6 +33,14 @@ class Patient(models.Model):
         ordering = ['-created_at']
 
     @property
+    def current_prescription(self):
+        prescriptions = self.prescriptions.filter(is_current=True)
+        if prescriptions.exists():
+            return prescriptions.first()
+        return None
+
+
+    @property
     def current_program_enrollment(self):
         """Check if patient:
             1. Has enrolment marked current, if multiple return 1st assumed to be latest
