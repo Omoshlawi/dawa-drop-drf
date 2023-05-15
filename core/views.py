@@ -5,9 +5,10 @@ from rest_framework import viewsets, permissions
 
 from users.models import Patient
 from . import permisions as custom_permissions
-from .models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus, AppointMentType
+from .models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus, AppointMentType, \
+    DeliveryTimeSlot
 from .serializers import HealthFacilitySerializer, DeliveryModeSerializer, TransferRequestSerializer, \
-    FacilityTypeSerializer, MaritalStatusSerializer, AppointMentTypeSerializer
+    FacilityTypeSerializer, MaritalStatusSerializer, AppointMentTypeSerializer, DeliveryTimeSlotSerializer
 from . import mixin
 
 
@@ -60,7 +61,6 @@ class HealthFacilityTypeViewSet(viewsets.ModelViewSet):
 
 class DeliveryModeViewSet(viewsets.ModelViewSet):
     permission_classes = [
-        permissions.IsAuthenticated,
         custom_permissions.IsAdminOrReadOnly
     ]
     queryset = DeliveryMode.objects.all()
@@ -88,3 +88,11 @@ class MaritalStatusViewSet(viewsets.ModelViewSet):
 class AppointMentTypeViewSet(viewsets.ModelViewSet):
     queryset = AppointMentType.objects.all()
     serializer_class = AppointMentTypeSerializer
+
+
+class DeliveryTimeSlotViewSet(viewsets.ModelViewSet):
+    permission_classes = [
+        custom_permissions.IsDoctorOrReadOnly
+    ]
+    queryset = DeliveryTimeSlot.objects.all()
+    serializer_class = DeliveryTimeSlotSerializer

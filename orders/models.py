@@ -6,9 +6,20 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 class Order(models.Model):
     patient = models.ForeignKey("patients.Patient", on_delete=models.CASCADE, related_name='orders')
-    national_id = models.PositiveIntegerField()
-    date_of_depletion = models.DateField()
     reach_out_phone_number = PhoneNumberField(null=True, blank=True)
+    # todo think of the cascade
+    delivery_mode = models.ForeignKey(
+        "core.DeliveryMode",
+        on_delete=models.CASCADE,
+        related_name='orders',
+        null=True, blank=True
+    )
+    time_slot = models.ForeignKey(
+        'core.DeliveryTimeSlot',
+        on_delete=models.CASCADE,
+        related_name='orders',
+        null=True, blank=True
+    )
     longitude = models.DecimalField(max_digits=22, decimal_places=16)
     latitude = models.DecimalField(max_digits=22, decimal_places=16)
     address = models.CharField(max_length=300, null=True, blank=True)

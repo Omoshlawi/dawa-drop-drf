@@ -24,7 +24,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Order.objects.filter(patient__user=self.request.user)
 
     def perform_create(self, serializer):
+        """
+            Order creation steps
+            1.Check if there exist an appointment with field next_appointment_date pointing to future or today
+            2.If there exist such appointment,check if user is eligible to make an order based on the date
+                i.e Maximum of 1 day earlier(Ordering today if tomorrow is next appointment date
+            3.If ineligible:
+                a.post data to emr to create new appointment similar to last one except for next appointment
+                b.If created successfully, use response to create same appointment in dawadrop
+            4.Create an order and link it to the new appontment appointment
+        """
         patient = Patient.objects.get_or_create(user=self.request.user)[0]
+
         serializer.save(patient=patient)
 
     @action(detail=False, methods=['GET'])

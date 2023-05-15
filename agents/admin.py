@@ -7,3 +7,6 @@ from .models import DeliverAgent
 @admin.register(DeliverAgent)
 class DeliverAgentAdmin(admin.ModelAdmin):
     list_display = ('id', "user", 'agent_number', 'delivery_mode', 'work_clinic', 'created_at')
+
+
+

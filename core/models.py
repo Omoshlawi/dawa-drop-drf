@@ -99,3 +99,13 @@ class AppointMentType(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class DeliveryTimeSlot(models.Model):
+    slot = models.CharField(max_length=255)
+    start = models.TimeField()
+    end = models.TimeField()
+    description = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.slot

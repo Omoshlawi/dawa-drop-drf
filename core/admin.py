@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from core.models import HealthFacility, DeliveryMode, FacilityTransferRequest, FacilityType, MaritalStatus, \
-    AppointMentType
+    AppointMentType, DeliveryTimeSlot
 
 
 # Register your models here.
@@ -43,3 +43,8 @@ class MaritalStatusAdmin(admin.ModelAdmin):
 @admin.register(AppointMentType)
 class AppointMentTypeAdmin(admin.ModelAdmin):
     list_display = ('code', 'type', 'description', 'created_at')
+
+
+@admin.register(DeliveryTimeSlot)
+class DeliveryTimeSlotAdmin(admin.ModelAdmin):
+    list_display = ('slot', 'start', 'end', 'description')

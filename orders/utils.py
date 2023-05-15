@@ -1,6 +1,9 @@
 import requests
+import math
 
 ORS_API_KEY = "5b3ce3597851110001cf62489174bcdc8f554d299974dd0047a0e714"
+
+
 # https://openrouteservice.org/dev/#/home
 
 def get_route_polyline(source, destination):
@@ -43,8 +46,39 @@ def get_route_polyline(source, destination):
     return response.json()
 
 
-if __name__ == '__main__':
-    get_route_polyline(
-        {'latitude': 8.681495, 'longitude': 49.41461},
-        {'latitude': 8.687872, 'longitude': 49.420318}
+# Bard
+def get_distance_between_coordinates(lat1, lng1, lat2, lng2):
+    R = 6371.0088
+    dLat = lat2 - lat1
+    dLng = lng2 - lng1
+    a = math.sin(dLat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dLng / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+# ChartGpt
+def calculate_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # Radius of the earth in km
+    dLat = deg2rad(lat2 - lat1)
+    dLon = deg2rad(lon2 - lon1)
+    a = (
+            math.sin(dLat / 2) * math.sin(dLat / 2) +
+            math.cos(deg2rad(lat1)) * math.cos(deg2rad(lat2)) *
+            math.sin(dLon / 2) * math.sin(dLon / 2)
     )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    d = R * c  # Distance in km
+    return d
+
+
+def deg2rad(deg):
+    return deg * (math.pi / 180)
+
+
+if __name__ == '__main__':
+    # get_route_polyline(
+    #     {'latitude': 8.681495, 'longitude': 49.41461},
+    #     {'latitude': 8.687872, 'longitude': 49.420318}
+    # )
+    print(calculate_distance(8.681495, 49.41461, 8.687872, 49.420318))
+    print(get_distance_between_coordinates(8.681495, 49.41461, 8.687872, 49.420318))

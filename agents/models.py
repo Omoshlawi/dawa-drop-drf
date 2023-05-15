@@ -38,3 +38,5 @@ class DeliverAgent(models.Model):
         DeliverAgent.objects.delete(id=self.id)
         return doctor
 
+
+

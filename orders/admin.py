@@ -9,7 +9,7 @@ from orders.models import Order, Delivery, DeliveryFeedBack, AgentTrip
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        'patient', 'national_id', 'date_of_depletion', 'reach_out_phone_number',
+        'patient', 'reach_out_phone_number', 'delivery_mode', 'time_slot',
         'longitude', 'latitude', 'address', 'created_at', 'updated_at'
     )
 

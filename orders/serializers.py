@@ -129,7 +129,7 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'url', 'order_id', 'patient', 'national_id', 'date_of_depletion',
+            'url', 'order_id', 'patient', 'delivery_mode', 'time_slot',
             'reach_out_phone_number', 'longitude', 'latitude',
             'address', 'is_delivered', 'is_approved', 'delivery', 'created_at', 'updated_at'
         ]
@@ -137,6 +137,8 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'view_name': 'orders:order-detail', 'read_only': True},
             'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
             'delivery': {'view_name': 'orders:delivery-detail', 'read_only': True},
+            'delivery_mode': {'view_name': 'core:mode-detail', 'read_only': True},
+            'time_slot': {'view_name': 'core:time-slot-detail'},
         }
 
 
