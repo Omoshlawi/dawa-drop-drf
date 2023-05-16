@@ -62,7 +62,23 @@ def get_triads(patient):
             'height': triad["height"],
             'temperature': triad["temperature"],
             'heart_rate': triad["heart_rate"],
+            'blood_pressure': triad["blood_pressure"],
             'created_at': triad["created_at"],
+        },
+        response['results']
+    )
+    return response
+
+
+def get_tests(patient):
+    url = f"{settings.EMR_BASE_URL}medication/test/"
+    response = requests.get(url=url, params={'appointment__patient__patient_number': patient.patient_number}).json()
+    response['results'] = map(
+        lambda test: {
+            'id': test["id"],
+            'cd4_count': test["cd4_count"],
+            'viral_load': test["viral_load"],
+            'created_at': test["created_at"],
         },
         response['results']
     )
