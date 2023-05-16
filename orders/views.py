@@ -6,7 +6,9 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-
+from django.utils import timezone
+from patients.api import get_prescriptions, get_remote_current_prescription
+from patients.models import AppointMent
 from users.utils import post_appointment_to_emr
 from . import mixin
 from core import permisions as custom_permissions
@@ -26,7 +28,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
         custom_permissions.IsPatient,
-        custom_permissions.HasRelatedUserType
+        custom_permissions.HasRelatedUserType,
+        custom_permissions.HasCurrentPrescriptionOrReadOnly
     ]
 
     def get_queryset(self):
@@ -133,7 +136,7 @@ class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
         delivery = Delivery.objects.create(
             order=order,
             code=random_string,
-            prescription=order.appointment.patient.current_prescription.regimen,
+            prescription=self.get_remote_current_prescription_id(),
             delivery_agent=self.request.user.agent
         )
         serializer = DeliverySerializer(instance=delivery, context={'request': request})
@@ -141,6 +144,13 @@ class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Order.objects.filter(delivery__isnull=True)
+
+    def get_remote_current_prescription_id(self):
+        order = self.get_object()
+        current = get_remote_current_prescription(order.appointment.patient)
+        if current:
+            return current["id"]
+        return None
 
 
 class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):

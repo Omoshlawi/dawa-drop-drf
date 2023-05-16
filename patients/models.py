@@ -34,10 +34,8 @@ class Patient(models.Model):
 
     @property
     def current_prescription(self):
-        prescriptions = self.prescriptions.filter(is_current=True)
-        if prescriptions.exists():
-            return prescriptions.first()
-        return None
+        from .api import get_remote_current_prescription
+        return get_remote_current_prescription(self)
 
     @property
     def current_program_enrollment(self):

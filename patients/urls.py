@@ -1,9 +1,10 @@
 from django.urls import path, include
 from rest_framework_nested import routers as nested_routers
 
-from patients.views import PatientViewSet, PatientNextOfKeenViewSet, AppointMentViewSet
+from patients.views import PatientViewSet, PatientNextOfKeenViewSet, AppointMentViewSet, MedicationViewSet
 
 router = nested_routers.DefaultRouter()
+router.register(prefix=r'prescriptions', viewset=MedicationViewSet, basename='prescription')
 router.register(prefix=r'appointments', viewset=AppointMentViewSet, basename='appointment')
 router.register(prefix=r'', viewset=PatientViewSet, basename='patient')
 

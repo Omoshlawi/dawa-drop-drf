@@ -160,6 +160,19 @@ class HasCurrentPrescription(IsPatient):
         super().has_object_permission(request, view, obj) and request.user.patient.current_prescription
 
 
+class HasCurrentPrescriptionOrReadOnly(HasCurrentPrescription):
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        return super().has_permission(request, view)
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
+        super().has_object_permission(request, view, obj)
+
+
 class HasCurrentEnrolledProgram(IsPatient):
     message = "You do not have permission to perform this action, you must be enrolled in loyalty programme."
 

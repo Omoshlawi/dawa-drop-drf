@@ -2,10 +2,11 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
 
 from core import permisions as custom_permissions
 from patients import mixin
-from patients.api import get_and_sync_appointments
+from patients.api import get_and_sync_appointments, get_prescriptions
 from patients.filterset import AppointMentFilterSet
 from patients.models import Patient, PatientNextOfKeen
 from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer, AppointMentSerializer
@@ -68,3 +69,16 @@ class AppointMentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return self.request.user.patient.appointments.all()
+
+
+class MedicationViewSet(viewsets.GenericViewSet):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsPatient,
+        custom_permissions.HasRelatedUserType
+    ]
+
+    def list(self, request, *args, **kwargs):
+        return Response(
+            data=get_prescriptions(self.request.user.patient)
+        )
