@@ -8,7 +8,6 @@ from awards.models import LoyaltyProgram
 from patients.models import Patient
 from users.serializers import PublicProfileSerializer
 from .models import Order, Delivery, DeliveryFeedBack
-from medication.serializers import AppointMentSerializer, ARTRegimenSerializer
 from core.serializers import DeliveryModeSerializer, DeliveryTimeSlotSerializer
 
 
@@ -53,7 +52,6 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     delivery_id = serializers.SerializerMethodField()
     agent = serializers.SerializerMethodField()
     doctor = serializers.SerializerMethodField()
-    prescription = ARTRegimenSerializer(read_only=True)
     destination = serializers.SerializerMethodField()
     start_location = serializers.SerializerMethodField()
     start_url = serializers.SerializerMethodField()
@@ -114,7 +112,6 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
         ]
         extra_kwargs = {
             'url': {'view_name': 'orders:delivery-request-detail'},
-            # 'prescription': {'view_name': 'medication:regimen-detail'},
             'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
             # 'code': {'read_only': True},
         }
@@ -147,7 +144,6 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
             'delivery': {'view_name': 'orders:delivery-request-detail', 'read_only': True},
             'delivery_mode': {'view_name': 'core:mode-detail'},
             'time_slot': {'view_name': 'core:time-slot-detail'},
-            # 'appointment': {'read_only': True, 'view_name': 'medication:appointment-detail'}
         }
 
     def to_representation(self, instance):

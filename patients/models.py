@@ -39,7 +39,6 @@ class Patient(models.Model):
             return prescriptions.first()
         return None
 
-
     @property
     def current_program_enrollment(self):
         """Check if patient:
@@ -109,16 +108,21 @@ class PatientNextOfKeen(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    class Meta:
+        ordering = ['-created_at']
 
-class Triad(models.Model):
+
+class AppointMent(models.Model):
     remote_id = models.PositiveIntegerField(unique=True)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='triads')
-    weight = models.DecimalField(decimal_places=2, max_digits=12, blank=True, null=True)
-    height = models.DecimalField(decimal_places=2, max_digits=12)
-    temperature = models.PositiveIntegerField(null=True, blank=True)
-    heart_rate = models.PositiveIntegerField(null=True, blank=True)
-    blood_pressure = models.DecimalField(decimal_places=2, max_digits=12, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+    patient = models.ForeignKey("patients.Patient", related_name='appointments', on_delete=models.CASCADE)
+    type = models.ForeignKey('core.AppointMentType', related_name='appointments', on_delete=models.CASCADE)
+    doctor = models.ForeignKey('doctors.Doctor', related_name='appointments', on_delete=models.CASCADE, )
+    next_appointment_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.patient.patient_number} {self.type} appointment"
 
     class Meta:
         ordering = ['-created_at']

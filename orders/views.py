@@ -93,7 +93,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.save(appointment=new_appointment)
 
     def create_appointment(self, appointment_dict, curr_appointment):
-        from medication.models import AppointMent
         new_appointment = AppointMent.objects.create(
             remote_id=appointment_dict["id"],
             patient=curr_appointment.patient,

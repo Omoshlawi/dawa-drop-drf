@@ -4,10 +4,9 @@ from rest_framework.reverse import reverse
 from rest_framework_nested import serializers as nested_serializer
 from awards.serializers import PatientProgramEnrollmentSerializer, RedemptionSerializer
 from core.models import HealthFacility, FacilityType, MaritalStatus, AppointMentType
-from core.serializers import HealthFacilitySerializer, MaritalStatusSerializer
+from core.serializers import HealthFacilitySerializer, MaritalStatusSerializer, AppointMentTypeSerializer
 from doctors.models import Doctor
-from medication.models import AppointMent, PatientHivMedication, ARTRegimen, HIVLabTest
-from patients.models import PatientNextOfKeen, Patient, Triad
+from patients.models import PatientNextOfKeen, Patient, AppointMent
 
 
 class PatientNextOfKeenSerializer(serializers.HyperlinkedModelSerializer):
@@ -35,10 +34,6 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     next_of_keen = PatientNextOfKeenSerializer(many=True, read_only=True)
     loyalty_points = serializers.SerializerMethodField()
     enrollments = PatientProgramEnrollmentSerializer(many=True, read_only=True)
-    triads = nested_serializer.NestedHyperlinkedIdentityField(
-        many=True, view_name='patients:triad-detail',
-        read_only=True, parent_lookup_kwargs={'patient_pk': 'patient__pk'}
-    )
 
     # redemptions = serializers.SerializerMethodField()
 
@@ -90,18 +85,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
                 context=self.context
             ).data
         }
-        triad_list = _dict.pop('triads')
-        triads_obj = {
-            'triads': {
-                'count': len(triad_list),
-                'url': reverse(
-                    viewname='patients:triad-list',
-                    args=[instance.id],
-                    request=self.context.get('request')
-                ),
-                'url_list': triad_list
-            }
-        }
+
         marital_status = _dict.pop("marital_status")
         marital_status_obj = {
             'marital_status': MaritalStatusSerializer(
@@ -111,7 +95,6 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         }
 
         _dict.update(marital_status_obj)
-        _dict.update(triads_obj)
         _dict.update(nok_obj)
         _dict.update(base_clinic_obj)
         return _dict
@@ -120,7 +103,6 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         model = Patient
         fields = (
             'url',
-            'triads',
             'patient_number',
             'next_of_keen',
             'base_clinic',
@@ -139,33 +121,33 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
-class TriadSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.SerializerMethodField()
-
-    def get_url(self, instance):
-        return reverse(
-            viewname='patients:triad-detail',
-            args=[instance.patient.id, instance.id],
-            request=self.context.get('request')
-        )
-
+class AppointMentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Triad
+        model = AppointMent
         fields = (
-            'url',
-            'patient', 'weight', 'height',
-            'temperature', 'heart_rate',
-            'blood_pressure', 'created_at'
+            'url', 'id', 'patient', 'type', 'doctor', 'next_appointment_date',
+            'created_at', 'updated_at'
         )
         extra_kwargs = {
-            'patient': {'view_name': 'patients:patient-detail', 'read_only': True},
+            'url': {'view_name': 'patients:appointment-detail'},
+            'patient': {'view_name': 'patients:patient-detail'},
+            'type': {'view_name': 'core:appointment-types-detail'},
+            'doctor': {'view_name': 'doctors:doctor-detail'},
         }
+
+    def to_representation(self, instance):
+        _dict = super().to_representation(instance)
+        from users.serializers import PublicProfileSerializer
+        _dict.update({
+            'doctor': PublicProfileSerializer(instance=instance.doctor.user.profile, context=self.context).data,
+            'type': AppointMentTypeSerializer(instance=instance.type, context=self.context).data
+        })
+        return _dict
 
 
 class PatientAddUpdateSerializer(serializers.ModelSerializer):
     marital_status = serializers.JSONField()
     base_clinic = serializers.JSONField()
-    triads = serializers.JSONField()
     prescriptions = serializers.JSONField()
     appointments = serializers.JSONField()
     next_of_keen = serializers.JSONField()
@@ -174,21 +156,19 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
         model = Patient
         fields = (
             'patient_number', 'date_of_birth', 'county_of_residence', 'occupation',
-            'national_id', 'marital_status', 'base_clinic', 'triads', 'next_of_keen',
+            'national_id', 'marital_status', 'base_clinic', 'next_of_keen',
             'prescriptions', 'appointments'
         )
 
     def update(self, instance, validated_data):
         facility = self.get_or_create_facility(validated_data.pop("base_clinic"))
         marital_status = self.get_or_create_marital_status(validated_data.pop("marital_status"))
-        triads = validated_data.pop("triads")
         next_of_keen = validated_data.pop("next_of_keen")
         prescriptions = validated_data.pop('prescriptions')
         appointments = validated_data.pop('appointments')
 
         validated_data.update({'base_clinic': facility, 'marital_status': marital_status})
         updated_instance = super().update(instance, validated_data)
-        self.update_or_create_triads(triads, updated_instance)
         self.update_or_create_nok(next_of_keen, updated_instance)
         self.update_or_create_appointments(appointments, updated_instance)
         self.update_or_create_prescriptions(prescriptions, updated_instance)
@@ -284,25 +264,6 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
             )
         return regimen
 
-    def update_or_create_triads(self, triads_dict, patient_instance):
-        if triads_dict["count"] == 0:
-            return
-        for triad in triads_dict["list"]:
-            try:
-                Triad.objects.get(remote_id=triad["id"])
-                # TODO perform update
-            except Triad.DoesNotExist:
-                # create
-                Triad.objects.create(
-                    remote_id=triad["id"],
-                    patient=patient_instance,
-                    weight=triad["weight"],
-                    height=triad["height"],
-                    temperature=triad["temperature"],
-                    heart_rate=triad["heart_rate"],
-                    blood_pressure=triad["blood_pressure"]
-                )
-
     def update_or_create_nok(self, nok_dict, patient_instance):
         if nok_dict["count"] == 0:
             return
@@ -352,18 +313,4 @@ class PatientAddUpdateSerializer(serializers.ModelSerializer):
                     viral_load=test["viral_load"]
                 )
 
-    def update_or_create_prescriptions(self, prescriptions_dict, patient_instance):
-        if prescriptions_dict["count"] == 0:
-            return
-        for prescription in prescriptions_dict["list"]:
-            try:
-                PatientHivMedication.objects.get(remote_id=prescription["id"])
-                # TODO perform update
-            except PatientHivMedication.DoesNotExist:
-                PatientHivMedication.objects.create(
-                    remote_id=prescription["id"],
-                    patient=patient_instance,
-                    regimen=self.get_or_create_regimen(prescription["regimen"]),
-                    is_current=prescription["is_current"],
-                    doctor=self.get_or_create_doctor(prescription["doctor"])
-                )
+    

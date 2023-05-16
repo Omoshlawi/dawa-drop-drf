@@ -1,6 +1,6 @@
 from django_filters.rest_framework import filterset, filters
 
-from medication.models import AppointMent
+from patients.models import AppointMent
 
 
 class AppointMentFilterSet(filterset.FilterSet):

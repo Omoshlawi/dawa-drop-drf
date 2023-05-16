@@ -7,7 +7,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 class Order(models.Model):
     reach_out_phone_number = PhoneNumberField(null=True, blank=True)
     appointment = models.OneToOneField(
-        "medication.Appointment",
+        "patients.Appointment",
         on_delete=models.CASCADE,
         null=True, blank=True
     )
@@ -52,11 +52,7 @@ class Delivery(models.Model):
     """Sore information of how orders were disbusted"""
     order = models.OneToOneField(Order, related_name='delivery', on_delete=models.CASCADE)
     code = models.CharField(max_length=32, unique=True, null=True, blank=True)
-    prescription = models.ForeignKey(
-        "medication.ARTRegimen",
-        related_name='deliveries',
-        on_delete=models.CASCADE
-    )
+    prescription = models.PositiveIntegerField()
     # todo Think about delete cascade
     delivery_agent = models.ForeignKey(
         "agents.DeliverAgent",

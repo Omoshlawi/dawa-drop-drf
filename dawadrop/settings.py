@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'awards',
     'agents',
     'doctors',
-    'medication',
 ]
 
 MIDDLEWARE = [

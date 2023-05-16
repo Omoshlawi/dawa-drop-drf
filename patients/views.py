@@ -5,8 +5,9 @@ from rest_framework.generics import get_object_or_404
 
 from core import permisions as custom_permissions
 from patients import mixin
-from patients.models import Patient, PatientNextOfKeen, Triad
-from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer, TriadSerializer
+from patients.filterset import AppointMentFilterSet
+from patients.models import Patient, PatientNextOfKeen
+from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer, AppointMentSerializer
 
 
 # Create your views here.
@@ -43,14 +44,22 @@ class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
         return PatientNextOfKeen.objects.filter(patient=patient)
 
 
-class TriadViewSet(viewsets.ModelViewSet):
-    serializer_class = TriadSerializer
-    permission_classes = [custom_permissions.IsDoctorOrReadOnly]
+class AppointMentViewSet(viewsets.ModelViewSet):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsDoctorOrPatient
+    ]
+    serializer_class = AppointMentSerializer
+    filterset_class = AppointMentFilterSet
+    search_fields = (
+        "doctor__user__first_name", "doctor__user__last_name",
+        "doctor__user__profile__phone_number", "doctor__doctor_number"
+    )
 
     def get_queryset(self):
-        patient = get_object_or_404(Patient, id=self.kwargs.get("patient_pk"))
-        return patient.triads.all()
-
-    def perform_create(self, serializer):
-        patient = get_object_or_404(Patient, id=self.kwargs.get("patient_pk"))
-        serializer.save(patient=patient)
+        user = self.request.user
+        if user.profile.user_type == 'doctor':
+            queryset = user.doctor.appointments.all()
+        else:
+            queryset = user.patient.appointments.all()
+        return queryset
