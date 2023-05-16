@@ -50,3 +50,20 @@ def get_remote_current_prescription(patient):
     if len(current_prescriptions):
         return current_prescriptions[0]
     return None
+
+
+def get_triads(patient):
+    url = f"{settings.EMR_BASE_URL}medication/patients-triads/"
+    response = requests.get(url=url, params={'patient__patient_number': patient.patient_number}).json()
+    response['results'] = map(
+        lambda triad: {
+            'id': triad["id"],
+            'weight': triad["weight"],
+            'height': triad["height"],
+            'temperature': triad["temperature"],
+            'heart_rate': triad["heart_rate"],
+            'created_at': triad["created_at"],
+        },
+        response['results']
+    )
+    return response

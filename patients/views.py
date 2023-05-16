@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from core import permisions as custom_permissions
 from patients import mixin
-from patients.api import get_and_sync_appointments, get_prescriptions
+from patients.api import get_and_sync_appointments, get_prescriptions, get_triads
 from patients.filterset import AppointMentFilterSet
 from patients.models import Patient, PatientNextOfKeen
 from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer, AppointMentSerializer
@@ -82,3 +82,14 @@ class MedicationViewSet(viewsets.GenericViewSet):
         return Response(
             data=get_prescriptions(self.request.user.patient)
         )
+
+
+class PatientTriadViewSet(viewsets.GenericViewSet):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsPatient,
+        custom_permissions.HasRelatedUserType
+    ]
+
+    def list(self, request, *args, **kwargs):
+        return Response(data=get_triads(self.request.user.patient))
