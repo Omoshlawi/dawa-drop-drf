@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
+from patients.models import Triad
 from .models import AppointMent, HIVLabTest, ARTRegimen, PatientHivMedication
 from core.serializers import AppointMentTypeSerializer
+
 
 class HIVLabTestSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -70,3 +72,13 @@ class PatientHivMedicationSerializer(serializers.HyperlinkedModelSerializer):
             ).data if instance.regimen else None
         })
         return _dict
+
+
+class PatientTriadSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Triad
+        fields = ('url', 'weight', 'height', 'temperature', 'heart_rate', 'blood_pressure', 'created_at')
+        extra_kwargs = {
+            'url': {'view_name': 'medication:triad-detail'}
+        }
+

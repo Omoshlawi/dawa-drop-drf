@@ -7,7 +7,7 @@ from .filterset import AppointMentFilterSet
 from .models import AppointMent, HIVLabTest, ARTRegimen, PatientHivMedication
 from .serializers import (
     AppointMentSerializer, HIVLabTestSerializer,
-    ARTRegimenSerializer, PatientHivMedicationSerializer
+    ARTRegimenSerializer, PatientHivMedicationSerializer, PatientTriadSerializer
 )
 
 
@@ -77,3 +77,15 @@ class PatientHivMedicationViewSet(viewsets.ReadOnlyModelViewSet):
         patient = self.request.user.patient
         queryset = patient.prescriptions.all()
         return queryset
+
+
+class PatientTriadViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        custom_permissions.IsPatient,
+        custom_permissions.HasRelatedUserType
+    ]
+    serializer_class = PatientTriadSerializer
+
+    def get_queryset(self):
+        return self.request.user.patient.triads.all()

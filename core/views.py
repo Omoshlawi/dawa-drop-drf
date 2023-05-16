@@ -31,6 +31,7 @@ class ApiRootView(APIView):
             "patients_transfer_request_url": reverse.reverse_lazy('core:transfer-request-list', request=request),
             "patients_lab_tests": reverse.reverse_lazy('medication:test-list', request=request),
             "patients_prescription": reverse.reverse_lazy('medication:patient-hiv-prescription-list', request=request),
+            "patients_triads": reverse.reverse_lazy('medication:triad-list', request=request),
             "enrollments_url": reverse.reverse_lazy('awards:enrollment-list', request=request),
             # "patients_url": reverse.reverse_lazy('users:user-patient-list', request=request),
             "health_facilities_types": reverse.reverse_lazy('core:facility-type-list', request=request),
