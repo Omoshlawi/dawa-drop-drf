@@ -1,3 +1,4 @@
+from django.core.handlers.asgi import ASGIRequest
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.reverse import reverse
@@ -54,15 +55,21 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     doctor = serializers.SerializerMethodField()
     prescription = ARTRegimenSerializer(read_only=True)
     destination = serializers.SerializerMethodField()
+    start_location = serializers.SerializerMethodField()
     start_url = serializers.SerializerMethodField()
     cancel_url = serializers.SerializerMethodField()
     route_url = serializers.SerializerMethodField()
+    location_stream_url = serializers.SerializerMethodField()
 
     def get_start_url(self, instance):
         return reverse(
             'orders:delivery-start', args=[instance.id],
             request=self.context.get('request')
         )
+
+    def get_location_stream_url(self, instance):
+        request:ASGIRequest = self.context.get('request')
+        return f"ws://{request.get_host()}/ws/delivery/{instance.id}/"
 
     def get_cancel_url(self, instance):
         return reverse(
@@ -78,6 +85,9 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
 
     def get_destination(self, instance):
         return {'latitude': instance.order.latitude, 'longitude': instance.order.longitude}
+
+    def get_start_location(self, instance):
+        return {'latitude': instance.latitude, 'longitude': instance.longitude}
 
     def get_delivery_id(self, instance):
         return instance.get_id()
@@ -97,8 +107,8 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Delivery
         fields = [
-            'url', 'delivery_id', 'order', 'prescription', 'destination',
-            'start_url', 'cancel_url', 'time_started', 'route_url',
+            'url', 'delivery_id', 'order', 'prescription', 'destination', 'start_location',
+            'start_url', 'cancel_url', 'time_started', 'route_url', 'status', 'location_stream_url',
             # 'code',
             'created_at', 'agent', 'doctor'
         ]

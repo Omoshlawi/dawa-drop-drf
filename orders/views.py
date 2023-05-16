@@ -4,6 +4,7 @@ from rest_framework import permissions, status
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from users.utils import post_appointment_to_emr
@@ -148,11 +149,13 @@ class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
         custom_permissions.IsAgent,
-        custom_permissions.HasRelatedUserType
+        custom_permissions.HasRelatedUserType,
     ]
 
     def get_queryset(self):
-        return self.request.user.agent.deliveries.all()
+        if self.request.user.profile.user_type == 'agent':
+            return self.request.user.agent.deliveries.all()
+        Delivery.objects.all()
 
     @action(detail=True, url_path='start', url_name='start', methods=['post'], serializer_class=DeliveryStartSerializer)
     def start(self, request, *args, **kwargs):
@@ -171,9 +174,15 @@ class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):
             delivery.save()
         return Response(data={'detail': "Delivery canceled successfully"}, status=status.HTTP_200_OK)
 
-    @action(detail=True, url_path='route', url_name='route', methods=['get'])
+    @action(
+        detail=True, url_path='route', url_name='route', methods=['get'],
+        queryset=Delivery.objects.all(),
+        permission_classes=[
+            permissions.IsAuthenticated,
+            custom_permissions.HasRelatedUserType,
+        ])
     def route(self, request, *args, **kwargs):
-        delivery = self.get_object()
+        delivery = get_object_or_404(Delivery, **kwargs)
         if delivery.status == 'in_progress':
             geojson = get_route_polyline(
                 {'latitude': delivery.latitude, 'longitude': delivery.longitude},

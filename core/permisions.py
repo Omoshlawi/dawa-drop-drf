@@ -141,6 +141,8 @@ class HasRelatedUserType(BasePermission):
 
 
 class HasCurrentPrescription(IsPatient):
+    message = "You do not have permission to perform this action, you must have prescription,contact doctor for more."
+
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.patient.current_prescription
 
@@ -149,6 +151,8 @@ class HasCurrentPrescription(IsPatient):
 
 
 class HasCurrentEnrolledProgram(IsPatient):
+    message = "You do not have permission to perform this action, you must be enrolled in loyalty programme."
+
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.patient.current_program_enrollment
 
