@@ -38,6 +38,11 @@ class Patient(models.Model):
         return get_remote_current_prescription(self)
 
     @property
+    def prescriptions(self):
+        from .api import get_prescriptions
+        return get_prescriptions(self)["results"]
+
+    @property
     def current_program_enrollment(self):
         """Check if patient:
             1. Has enrolment marked current, if multiple return 1st assumed to be latest

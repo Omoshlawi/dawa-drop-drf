@@ -58,6 +58,15 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
     cancel_url = serializers.SerializerMethodField()
     route_url = serializers.SerializerMethodField()
     location_stream_url = serializers.SerializerMethodField()
+    prescription = serializers.SerializerMethodField()
+
+    def get_prescription(self, instance):
+        return list(
+            filter(
+                lambda pres: pres["id"] == instance.prescription,
+                instance.order.appointment.patient.prescriptions
+            )
+        )[0]
 
     def get_start_url(self, instance):
         return reverse(
@@ -66,7 +75,7 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
         )
 
     def get_location_stream_url(self, instance):
-        request:ASGIRequest = self.context.get('request')
+        request: ASGIRequest = self.context.get('request')
         return f"ws://{request.get_host()}/ws/delivery/{instance.id}/"
 
     def get_cancel_url(self, instance):
