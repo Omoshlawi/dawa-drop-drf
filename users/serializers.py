@@ -91,9 +91,6 @@ class UserRegistrationSerializer(serializers.Serializer):
         profile.phone_number = phone
         profile.save()
         # CREATE USER TYPE OBJECT
-        Patient.objects.create(
-            user=user
-        )
         return user
 
 
@@ -136,12 +133,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     def get_name(self, instance):
         return instance.get_full_name()
 
-    def validate_email(self, email):
-        # validator = EmailValidator('Enter a valid email address.')
-        # validator(email)
-        if User.objects.filter(email=email).exclude(username=self.instance.username).exists():
-            raise serializers.ValidationError('User With That Email Already Exists')
-        return email
+    # def validate_email(self, email):
+    #     # validator = EmailValidator('Enter a valid email address.')
+    #     # validator(email)
+    #     if User.objects.filter(email=email).exclude(username=self.instance.username).exists():
+    #         raise serializers.ValidationError('User With That Email Already Exists')
+    #     return email
 
     def validate_username(self, username):
         # validator = EmailValidator('Enter a valid email address.')

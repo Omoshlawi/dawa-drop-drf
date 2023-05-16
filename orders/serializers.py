@@ -193,7 +193,7 @@ class DeliveryFeedBackSerializer(serializers.HyperlinkedModelSerializer):
 
     def create(self, validated_data):
         user = self.context.get('request').user
-        patient = Patient.objects.get_or_create(user=user)[0]
+        patient = user.patient
         enrollment = patient.current_program_enrollment
         if enrollment is not None:
             validated_data.update(

@@ -5,6 +5,7 @@ from rest_framework.generics import get_object_or_404
 
 from core import permisions as custom_permissions
 from patients import mixin
+from patients.api import get_and_sync_appointments
 from patients.filterset import AppointMentFilterSet
 from patients.models import Patient, PatientNextOfKeen
 from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer, AppointMentSerializer
@@ -22,7 +23,8 @@ class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
         custom_permissions.IsPatientOrReadOnly,
-        custom_permissions.IsDoctorOrPatient
+        custom_permissions.IsDoctorOrPatient,
+        custom_permissions.HasRelatedUserType
     ]
     serializer_class = PatientNextOfKeenSerializer
 
@@ -33,9 +35,7 @@ class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.profile.user_type == 'doctor':
             return PatientNextOfKeen.objects.all()
-        curr_patient = Patient.objects.get_or_create(
-            user=self.request.user
-        )[0]
+        curr_patient = self.request.user.patient
         patient = get_object_or_404(Patient, id=self.kwargs['patient_pk'])
         if curr_patient != patient:
             raise PermissionDenied(
@@ -44,22 +44,27 @@ class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
         return PatientNextOfKeen.objects.filter(patient=patient)
 
 
-class AppointMentViewSet(viewsets.ModelViewSet):
+class AppointMentViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
-        custom_permissions.IsDoctorOrPatient
+        custom_permissions.IsPatient,
+        custom_permissions.HasRelatedUserType
     ]
     serializer_class = AppointMentSerializer
     filterset_class = AppointMentFilterSet
+
     search_fields = (
         "doctor__user__first_name", "doctor__user__last_name",
         "doctor__user__profile__phone_number", "doctor__doctor_number"
     )
 
+    def sync_with_emr(self, request):
+        patient = request.user.patient
+        get_and_sync_appointments(patient)
+
+    def list(self, request, *args, **kwargs):
+        self.sync_with_emr(request)
+        return super().list(request, *args, **kwargs)
+
     def get_queryset(self):
-        user = self.request.user
-        if user.profile.user_type == 'doctor':
-            queryset = user.doctor.appointments.all()
-        else:
-            queryset = user.patient.appointments.all()
-        return queryset
+        return self.request.user.patient.appointments.all()

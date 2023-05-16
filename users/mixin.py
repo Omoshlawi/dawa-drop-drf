@@ -227,7 +227,8 @@ class ProfileMixin:
     @action(
         methods=['post'], url_name='find-account', url_path='find-account', detail=False,
         serializer_class=AccountSearchSerializer, permission_classes=[
-            permissions.IsAuthenticated, custom_permissions.IsPatient], )
+            permissions.IsAuthenticated, custom_permissions.IsPatient,
+            custom_permissions.HasNoRelatedUserType], )
     def find_my_account(self, request, *args, **kwargs):
         """Find patient account with patient number or national id"""
         serializer = self.get_serializer(data=request.data)
@@ -264,7 +265,8 @@ class ProfileMixin:
 
     @action(
         methods=['get'], url_name='request-verification', url_path='verify-request', detail=False,
-        permission_classes=[permissions.IsAuthenticated, custom_permissions.IsPatient])
+        permission_classes=[permissions.IsAuthenticated, custom_permissions.IsPatient,
+                            custom_permissions.HasNoRelatedUserType])
     def request_verification(self, request, *args, **kwargs):
         search = request.GET.get("search")
         index = request.GET.get("account")
@@ -288,7 +290,8 @@ class ProfileMixin:
     @action(
         methods=['post'], url_name='verify', url_path='verify', detail=False,
         serializer_class=AccountVerifySerializer,
-        permission_classes=[permissions.IsAuthenticated, custom_permissions.IsPatient], )
+        permission_classes=[permissions.IsAuthenticated, custom_permissions.IsPatient,
+                            custom_permissions.HasNoRelatedUserType], )
     def account_verification(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

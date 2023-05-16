@@ -21,16 +21,12 @@ def update_patient(patient, request):
     # update user
     user = request.user
     user_serializer = UserSerializer(instance=user, data=patient)
-    user_serializer.is_valid(raise_exception=True)
-    user = user_serializer.save()
-    # update profile
     profile_serializer = ProfileSerializer(instance=user.profile, data=patient)
+    user_serializer.is_valid(raise_exception=True)
     profile_serializer.is_valid(raise_exception=True)
+    user = user_serializer.save()
     profile = profile_serializer.save()
-    # update patient
-    p = Patient.objects.get_or_create(
-        user=user
-    )[0]
+    p = Patient.objects.create(user=user)
     patient_serializer = PatientAddUpdateSerializer(instance=p, data=patient)
     patient_serializer.is_valid(raise_exception=True)
     patient = patient_serializer.save()

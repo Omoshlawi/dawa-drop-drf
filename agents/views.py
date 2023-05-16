@@ -8,6 +8,8 @@ from agents.serializers import DeliverAgentSerializer
 # Create your views here.
 
 class DeliverAgentViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]
     queryset = DeliverAgent.objects.all()
     serializer_class = DeliverAgentSerializer

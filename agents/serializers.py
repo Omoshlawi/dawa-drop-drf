@@ -29,5 +29,3 @@ class DeliverAgentSerializer(serializers.HyperlinkedModelSerializer):
         _dict.update(base_clinic_obj)
         return _dict
 
-
-# class DeliveryTimeSlotSerializer(serializers.HyperlinkedModelSerializer)

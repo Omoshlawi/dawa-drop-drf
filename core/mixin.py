@@ -17,7 +17,9 @@ class PatientTransferMixin:
         serializer_class=PatientOnlyTransferSerializer,
         permission_classes=[
             permissions.IsAuthenticated,
-            custom_permission.IsPatient])
+            custom_permission.IsPatient,
+            custom_permission.HasRelatedUserType
+        ])
     def my_request(self, request, *args, **kwargs):
         if request.method == 'POST':
             return self.post_request(request)
@@ -26,7 +28,7 @@ class PatientTransferMixin:
 
     def post_request(self, request):
         serializer = self.get_serializer(data=request.data)
-        patient = Patient.objects.get_or_create(user=request.user)[0]
+        patient = request.user.patient
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(patient=patient)
         return Response(
@@ -36,7 +38,7 @@ class PatientTransferMixin:
 
     def get_request(self, request):
         queryset = self.filter_queryset(self.get_queryset())
-        patient = Patient.objects.get_or_create(user=request.user)[0]
+        patient = request.user.patient
         queryset = queryset.filter(patient=patient)
         page = self.paginate_queryset(queryset)
         if page is not None:

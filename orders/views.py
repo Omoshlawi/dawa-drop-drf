@@ -49,7 +49,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 b.If created successfully, use response to create same appointment in dawadrop
             4.Create an order and link it to the new appontment appointment
         """
-        patient = Patient.objects.get_or_create(user=self.request.user)[0]
+        patient = self.request.user.patient
         # 1.Get current patient due appointment of type refill where next date is
         # pointing to today or tomorrow
         appointments = patient.appointments.filter(
