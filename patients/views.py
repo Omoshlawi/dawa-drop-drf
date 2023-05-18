@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 from core import permisions as custom_permissions
 from patients import mixin
-from patients.api import get_and_sync_appointments, get_prescriptions, get_triads, get_tests
+from patients.api import get_and_sync_appointments, get_prescriptions, get_triads, get_tests, \
+    get_patient_summary_statistics
 from patients.filterset import AppointMentFilterSet
 from patients.models import Patient, PatientNextOfKeen
 from patients.serializers import PatientSerializer, PatientNextOfKeenSerializer, AppointMentSerializer
@@ -104,3 +105,8 @@ class PatientTestViewSet(viewsets.GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         return Response(data=get_tests(self.request.user.patient))
+
+
+class PatientSummaryViewSet(viewsets.ViewSet):
+    def list(self, request):
+        return Response(data=get_patient_summary_statistics())

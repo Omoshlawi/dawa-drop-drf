@@ -140,6 +140,38 @@ class HasRelatedUserType(BasePermission):
         )
 
 
+class IsValidPatient(BasePermission):
+    message = "You do not have permission to perform this action, create your profile first."
+
+    def has_permission(self, request, view):
+        return (
+                request.user and
+                request.user.is_authenticated and
+                request.user.profile.has_related_user_type and
+                request.user.profile.user_type == 'patient' and
+                request.user.patient.patient_number
+        )
+
+    def has_object_permission(self, request, view, obj):
+        return (
+                request.user and
+                request.user.is_authenticated and
+                request.user.profile.has_related_user_type and
+                request.user.profile.user_type == 'patient' and
+                request.user.patient.patient_number
+        )
+
+
+class IsNotValidPatient(IsValidPatient):
+    message = "Your profile is already up to date"
+
+    def has_permission(self, request, view):
+        return not super().has_permission(request, view)
+
+    def has_object_permission(self, request, view, obj):
+        return not super().has_object_permission(request, view, obj)
+
+
 class HasNoRelatedUserType(HasRelatedUserType):
     message = "You do not have permission to perform this action, your profile is already up to date."
 

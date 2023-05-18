@@ -228,7 +228,7 @@ class ProfileMixin:
         methods=['post'], url_name='find-account', url_path='find-account', detail=False,
         serializer_class=AccountSearchSerializer, permission_classes=[
             permissions.IsAuthenticated, custom_permissions.IsPatient,
-            custom_permissions.HasNoRelatedUserType], )
+            custom_permissions.IsNotValidPatient], )
     def find_my_account(self, request, *args, **kwargs):
         """Find patient account with patient number or national id"""
         serializer = self.get_serializer(data=request.data)
@@ -266,7 +266,7 @@ class ProfileMixin:
     @action(
         methods=['get'], url_name='request-verification', url_path='verify-request', detail=False,
         permission_classes=[permissions.IsAuthenticated, custom_permissions.IsPatient,
-                            custom_permissions.HasNoRelatedUserType])
+                            custom_permissions.IsNotValidPatient])
     def request_verification(self, request, *args, **kwargs):
         search = request.GET.get("search")
         index = request.GET.get("account")
@@ -291,7 +291,7 @@ class ProfileMixin:
         methods=['post'], url_name='verify', url_path='verify', detail=False,
         serializer_class=AccountVerifySerializer,
         permission_classes=[permissions.IsAuthenticated, custom_permissions.IsPatient,
-                            custom_permissions.HasNoRelatedUserType], )
+                            custom_permissions.IsNotValidPatient], )
     def account_verification(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -313,7 +313,7 @@ class ProfileMixin:
             verification.save()
             return Response(data={"detail": "Account verification successful"}, status=status.HTTP_200_OK)
         except AccountVerification.DoesNotExist:
-            return Response(data={"detail": "Account not found."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"detail": "Account not found."}, status=status.HTTP_403_FORBIDDEN)
 
 
 class DoctorNextOfKeenMixin:

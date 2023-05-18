@@ -42,6 +42,7 @@ class ApiRootView(APIView):
             "orders_url": reverse.reverse_lazy('orders:order-list', request=request),
             "feedback_url": reverse.reverse_lazy('orders:feedback-list', request=request),
             "delivery_url": reverse.reverse_lazy('orders:delivery-request-list', request=request),
+            "Patient Summary data url": reverse.reverse_lazy('patients:summary-list', request=request),
         })
 
 

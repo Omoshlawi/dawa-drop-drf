@@ -83,3 +83,9 @@ def get_tests(patient):
         response['results']
     )
     return response
+
+
+def get_patient_summary_statistics():
+    url = f'{settings.EMR_BASE_URL}users/summary/'
+    resp = requests.get(url)
+    return resp.json()

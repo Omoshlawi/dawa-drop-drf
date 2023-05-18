@@ -10,7 +10,7 @@ from awards.models import LoyaltyProgram, PatientProgramEnrollment
 class Patient(models.Model):
     user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='patient')
     patient_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    national_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
+    national_id = models.PositiveIntegerField(null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     marital_status = models.ForeignKey(
         "core.MaritalStatus", on_delete=models.CASCADE,
