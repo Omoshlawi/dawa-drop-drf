@@ -126,6 +126,97 @@ class DeliverySerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class AgentDeliverySerializer(serializers.HyperlinkedModelSerializer):
+    """
+
+    """
+    delivery_id = serializers.SerializerMethodField()
+    agent = serializers.SerializerMethodField()
+    doctor = serializers.SerializerMethodField()
+    destination = serializers.SerializerMethodField()
+    start_location = serializers.SerializerMethodField()
+    start_url = serializers.SerializerMethodField()
+    cancel_url = serializers.SerializerMethodField()
+    route_url = serializers.SerializerMethodField()
+    location_stream_url = serializers.SerializerMethodField()
+    phone_number = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+
+    def get_status(self, instance):
+        if instance.order.is_delivered:
+            return 'delivered'
+        return instance.status
+
+    def get_address(self, instance):
+        return instance.order.address
+
+    def get_phone_number(self, instance):
+        phone = None
+        if instance.order.reach_out_phone_number:
+            phone = instance.order.reach_out_phone_number
+        else:
+            phone = instance.order.appointment.patient.user.profile.phone_number
+        return str(phone) if phone else None
+
+    def get_start_url(self, instance):
+        return reverse(
+            'orders:delivery-start', args=[instance.id],
+            request=self.context.get('request')
+        )
+
+    def get_location_stream_url(self, instance):
+        request: ASGIRequest = self.context.get('request')
+        return f"ws://{request.get_host()}/ws/delivery/{instance.id}/"
+
+    def get_cancel_url(self, instance):
+        return reverse(
+            'orders:delivery-cancel', args=[instance.id],
+            request=self.context.get('request')
+        )
+
+    def get_route_url(self, instance):
+        return reverse(
+            'orders:delivery-route', args=[instance.id],
+            request=self.context.get('request')
+        )
+
+    def get_destination(self, instance):
+        return {'latitude': instance.order.latitude, 'longitude': instance.order.longitude}
+
+    def get_start_location(self, instance):
+        return {'latitude': instance.latitude, 'longitude': instance.longitude}
+
+    def get_delivery_id(self, instance):
+        return instance.get_id()
+
+    def get_agent(self, instance):
+        return PublicProfileSerializer(
+            instance=instance.delivery_agent.user.profile,
+            context=self.context
+        ).data
+
+    def get_doctor(self, instance):
+        return PublicProfileSerializer(
+            instance=instance.order.appointment.doctor.user.profile,
+            context=self.context
+        ).data
+
+    class Meta:
+        model = Delivery
+        fields = [
+            'url', 'delivery_id', 'order', 'prescription', 'destination', 'start_location',
+            'start_url', 'cancel_url', 'time_started', 'route_url', 'status', 'location_stream_url',
+            # 'code',
+            'created_at', 'agent', 'doctor', 'phone_number', 'address'
+        ]
+        extra_kwargs = {
+            'url': {'view_name': 'orders:delivery-request-detail'},
+            'order': {'view_name': 'orders:order-detail', 'queryset': Order.objects.filter(delivery__isnull=True)},
+            # 'code': {'read_only': True},
+        }
+
+
 class OrderSerializer(serializers.HyperlinkedModelSerializer):
     order_id = serializers.SerializerMethodField()
     is_delivered = serializers.SerializerMethodField()

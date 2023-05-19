@@ -107,6 +107,17 @@ class PatientTestViewSet(viewsets.GenericViewSet):
         return Response(data=get_tests(self.request.user.patient))
 
 
+# class PatientNutritionViewSet(viewsets.GenericViewSet):
+#     permission_classes = [
+#         permissions.IsAuthenticated,
+#         custom_permissions.IsPatient,
+#         custom_permissions.HasRelatedUserType
+#     ]
+#
+#     def list(self, request, *args, **kwargs):
+#         return Response(data=get_tests(self.request.user.patient))
+
+
 class PatientSummaryViewSet(viewsets.ViewSet):
     def list(self, request):
         return Response(data=get_patient_summary_statistics())

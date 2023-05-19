@@ -52,4 +52,5 @@ class DeliveryTimeSlotAdmin(admin.ModelAdmin):
 
 @admin.register(RefillScheme)
 class RefillSchemeAdmin(admin.ModelAdmin):
-    list_display = ('scheme', 'time', 'units')
+    list_display = ('scheme', 'time', 'units', 'is_default')
+    list_editable = ['is_default', 'units', 'time']

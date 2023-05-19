@@ -7,6 +7,8 @@ from rest_framework.exceptions import APIException, PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from django.utils import timezone
+
+from core.models import RefillScheme
 from patients.api import get_prescriptions, get_remote_current_prescription
 from patients.models import AppointMent
 from users.utils import post_appointment_to_emr
@@ -15,7 +17,7 @@ from core import permisions as custom_permissions
 from users.models import Doctor, Patient
 from .models import Order, Delivery, DeliveryFeedBack
 from .serializers import OrderSerializer, DeliverySerializer, DeliveryFeedBackSerializer, DeliveryRequestSerializer, \
-    DeliveryStartSerializer
+    DeliveryStartSerializer, AgentDeliverySerializer
 from django.utils import timezone
 
 from .utils import get_route_polyline
@@ -67,6 +69,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         appointment = appointments.first()
         # Check if user is in any scheme
         refill_scheme = patient.refill_scheme
+        default_schemes = RefillScheme.objects.filter(is_default=True)
+        if not refill_scheme and default_schemes.exists():
+            refill_scheme = default_schemes.first()
+
         next_appointment_date = None
         if refill_scheme:
             refill_delta = timezone.timedelta(**{refill_scheme.units: refill_scheme.time})
@@ -154,12 +160,15 @@ class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = DeliverySerializer
+    serializer_class = AgentDeliverySerializer
     permission_classes = [
         permissions.IsAuthenticated,
         custom_permissions.IsAgent,
         custom_permissions.HasRelatedUserType,
     ]
+    filterset_fields = {
+        'status': ['isnull', 'exact'],
+    }
 
     def get_queryset(self):
         if self.request.user.profile.user_type == 'agent':

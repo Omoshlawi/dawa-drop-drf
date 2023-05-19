@@ -27,7 +27,7 @@ class LoyaltyProgram(models.Model):
 class Reward(models.Model):
     name = models.CharField(max_length=255, help_text="Name of the program reward")
     program = models.ForeignKey(LoyaltyProgram, related_name='rewards', on_delete=models.CASCADE)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     point_value = models.PositiveIntegerField(help_text='Number of points needed to redeem the reward')
     image = models.ImageField(upload_to='uploads/awards/rewards', null=True, blank=True)
     max_redemptions = models.PositiveIntegerField(
