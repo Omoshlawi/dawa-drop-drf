@@ -35,14 +35,16 @@ class DeliveryRequestSerializer(serializers.ModelSerializer):
         )
 
 
-class DeliveryStartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Delivery
-        fields = ('longitude', 'latitude')
-        extra_kwargs = {
-            'longitude': {'required': True},
-            'latitude': {'required': True},
-        }
+class DeliveryStartSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    longitude = serializers.DecimalField(max_digits=22, decimal_places=16, required=True)
+    latitude = serializers.DecimalField(max_digits=22, decimal_places=16, required=True)
+    start = serializers.BooleanField(required=False, default=True)
 
 
 class DeliverySerializer(serializers.HyperlinkedModelSerializer):

@@ -64,7 +64,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         # if none raise ineligible
         if not appointments.exists():
             raise PermissionDenied(
-                detail="You are not eligible for making an Order"
+                detail="You are not eligible for making an Order, no appointment"
             )
         appointment = appointments.first()
         # Check if user is in any scheme
@@ -133,17 +133,26 @@ class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
         custom_permissions.HasRelatedUserType
     ]
 
-    @action(detail=True, url_path='accept', url_name='accept', methods=['get'])
+    @action(detail=True, url_path='accept', url_name='accept', methods=['post'],
+            serializer_class=DeliveryStartSerializer)
     def accept(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         random_string = secrets.token_hex(16)
         while Delivery.objects.filter(code=random_string).exists():
             random_string = secrets.token_hex(16)
         order = self.get_object()
+        validated_data = serializer.validated_data
+        start_indicator = True
+        if validated_data.get("start", None) is not None:
+            start_indicator = validated_data.pop("start")
         delivery = Delivery.objects.create(
             order=order,
             code=random_string,
             prescription=self.get_remote_current_prescription_id(),
-            delivery_agent=self.request.user.agent
+            delivery_agent=self.request.user.agent,
+            status='in_progress' if start_indicator else None,
+            **validated_data
         )
         serializer = DeliverySerializer(instance=delivery, context={'request': request})
         return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -175,7 +184,8 @@ class DeliveriesViewSet(viewsets.ReadOnlyModelViewSet):
             return self.request.user.agent.deliveries.all()
         Delivery.objects.all()
 
-    @action(detail=True, url_path='start', url_name='start', methods=['post'], serializer_class=DeliveryStartSerializer)
+    @action(detail=True, url_path='start', url_name='start', methods=['post'],
+            serializer_class=DeliveryStartSerializer)
     def start(self, request, *args, **kwargs):
         delivery = self.get_object()
         if delivery.status != 'in_progress':
