@@ -25,7 +25,6 @@ class PatientNextOfKeenViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticated,
         custom_permissions.IsPatientOrReadOnly,
-        custom_permissions.IsDoctorOrPatient,
         custom_permissions.HasRelatedUserType
     ]
     serializer_class = PatientNextOfKeenSerializer

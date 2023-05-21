@@ -99,7 +99,7 @@ class Patient(models.Model):
 
 
 class PatientNextOfKeen(models.Model):
-    remote_id = models.PositiveIntegerField(unique=True)
+    remote_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
     patient = models.ForeignKey(Patient, related_name='next_of_keen', on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
     relationship = models.CharField(max_length=100)

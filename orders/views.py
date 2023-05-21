@@ -152,9 +152,10 @@ class DeliveryRequestViewSet(viewsets.ReadOnlyModelViewSet):
             prescription=self.get_remote_current_prescription_id(),
             delivery_agent=self.request.user.agent,
             status='in_progress' if start_indicator else None,
+            time_started=timezone.now() if start_indicator else None,
             **validated_data
         )
-        serializer = DeliverySerializer(instance=delivery, context={'request': request})
+        serializer = AgentDeliverySerializer(instance=delivery, context={'request': request})
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
