@@ -183,13 +183,20 @@ class HasNoRelatedUserType(HasRelatedUserType):
 
 
 class HasCurrentPrescription(IsPatient):
-    message = "You do not have permission to perform this action, you must have prescription,contact doctor for more."
+    message = "You do not have permission to perform this action, " \
+              "you must have an active prescription,contact doctor for more."
 
     def has_permission(self, request, view):
-        return super().has_permission(request, view) and request.user.patient.current_prescription
+        return (
+                super().has_permission(request, view) and
+                request.user.patient.current_prescription
+        )
 
     def has_object_permission(self, request, view, obj):
-        super().has_object_permission(request, view, obj) and request.user.patient.current_prescription
+        return (
+                super().has_object_permission(request, view, obj) and
+                request.user.patient.current_prescription
+        )
 
 
 class HasCurrentPrescriptionOrReadOnly(HasCurrentPrescription):
@@ -202,7 +209,7 @@ class HasCurrentPrescriptionOrReadOnly(HasCurrentPrescription):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        super().has_object_permission(request, view, obj)
+        return super().has_object_permission(request, view, obj)
 
 
 class HasCurrentEnrolledProgram(IsPatient):
@@ -212,4 +219,4 @@ class HasCurrentEnrolledProgram(IsPatient):
         return super().has_permission(request, view) and request.user.patient.current_program_enrollment
 
     def has_object_permission(self, request, view, obj):
-        super().has_object_permission(request, view, obj) and request.user.patient.current_program_enrollment
+        return super().has_object_permission(request, view, obj) and request.user.patient.current_program_enrollment
