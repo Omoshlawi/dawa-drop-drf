@@ -37,7 +37,10 @@ class DeliveryRequestSerializer(serializers.ModelSerializer):
 
 class DeliveryStartSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
-        pass
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
 
     def create(self, validated_data):
         pass
