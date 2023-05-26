@@ -16,7 +16,7 @@ from users.models import Profile, Doctor
 
 
 class UserCredentialSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=50)
+    current_password = serializers.CharField(max_length=50)
     password = serializers.CharField(max_length=16)
     password_confirm = serializers.CharField(max_length=16)
 
@@ -26,10 +26,10 @@ class UserCredentialSerializer(serializers.Serializer):
             raise serializers.ValidationError("The passwords must match")
         return value
 
-    def validate_username(self, value):
-        username = self.context.get('request').user.username
-        if username != value:
-            raise ValidationError("The passwords must match")
+    def validate_current_password(self, value):
+        user: User = self.context.get('request').user
+        if not user.check_password(value):
+            raise ValidationError("The current password provided is incorrect")
         return value
 
     def update(self, instance, validated_data):

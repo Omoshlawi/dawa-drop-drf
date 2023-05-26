@@ -16,7 +16,14 @@ class PatientProgramEnrollmentInline(admin.TabularInline):
 
 @admin.register(LoyaltyProgram)
 class LoyaltyProgramAdmin(admin.ModelAdmin):
-    list_display = ('name', 'unit_point', 'point_rate', 'image', 'is_default', 'created_at')
+    list_display = (
+        'name', 'unit_point', 'point_rate', 'image',
+        'is_default', 'entry_points', 'created_at'
+    )
+    list_editable = (
+        'unit_point', 'point_rate', 'image',
+        'is_default', 'entry_points'
+    )
     inlines = [RewardInline]
 
 

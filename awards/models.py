@@ -6,6 +6,7 @@ from django.db import models
 class LoyaltyProgram(models.Model):
     name = models.CharField(max_length=255, help_text="Name of the loyalty program")
     unit_point = models.PositiveIntegerField(help_text="Number of points awarded on each successful order")
+    entry_points = models.PositiveIntegerField()
     description = models.TextField(null=True, blank=True)
     point_rate = models.DecimalField(decimal_places=2, max_digits=12, help_text='Point worth in KES')
     image = models.ImageField(upload_to='uploads/awards/programs', null=True, blank=True)

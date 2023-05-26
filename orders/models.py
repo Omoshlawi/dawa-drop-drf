@@ -107,8 +107,22 @@ class DeliveryFeedBack(models.Model):
 
 @receiver(post_save, sender=DeliveryFeedBack)
 def create_check_user_program(sender, instance, created, **kwargs):
+    from awards.models import LoyaltyProgram, PatientProgramEnrollment
     """Check for patient point to see if he/she is eligible for moving to next programe"""
-    # if created:
-    #     patient = instance.delivery.order.patient
-    #     points = patient.total_points
-#        TODO ADD ALGORITHM TO MOVE USER TO NEXT PROGRAMME OF THRESHOLD POINT IS MET
+    patient = instance.delivery.order.appointment.patient
+    points = patient.total_points
+    programs = LoyaltyProgram.objects.filter(entry_points__lte=points).order_by('-entry_points')
+    if programs.exists():
+        program = programs.first()
+        if not patient.enrollments.filter(program=program).exists():
+            PatientProgramEnrollment.objects.create(
+                patient=patient,
+                program=program,
+                is_current=True
+            )
+        for enrolment in patient.enrollments.filter(program=program):
+            enrolment.is_current = True
+            enrolment.save()
+        for enrollment in patient.enrollments.filter(is_current=True).exclude(program=program):
+            enrollment.is_current = False
+            enrollment.save()

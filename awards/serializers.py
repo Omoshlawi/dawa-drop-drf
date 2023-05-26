@@ -51,7 +51,7 @@ class LoyaltyProgramSerializer(serializers.HyperlinkedModelSerializer):
         model = LoyaltyProgram
         fields = (
             'url', 'name', 'unit_point', 'image', 'description', 'point_rate',
-            'rewards', 'members_count', 'is_default', 'created_at'
+            'rewards', 'members_count', 'is_default', 'created_at', 'entry_points'
         )
         extra_kwargs = {
             'url': {'view_name': 'awards:program-detail'}

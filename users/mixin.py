@@ -77,9 +77,9 @@ class AuthMixin:
     @action(
         methods=['post'],
         url_path='change-password',
+        detail=False,
         url_name='change_password',
         description="Change current User password",
-        detail=True,
         permission_classes=[
             permissions.IsAuthenticated
         ],
@@ -93,10 +93,10 @@ class AuthMixin:
         :param kwargs:
         :return:
         """
-        serializer = UserCredentialSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response({'changed': True})
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'changed': True})
 
     @action(
         methods=['post'],
