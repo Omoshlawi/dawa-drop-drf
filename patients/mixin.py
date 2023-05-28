@@ -133,6 +133,13 @@ class PatientAppointmentSyncMixin:
 
 
 class FacilitySyncMixin:
+    def update_or_create_facilities(self, facilities_dict):
+        if facilities_dict["count"] == 0 or \
+                HealthFacility.objects.all().count() == facilities_dict["count"]:
+            return
+        for facility in facilities_dict["results"]:
+            self.get_or_create_facility(facility)
+
     def get_or_create_facility(self, facility_dict):
         facility = None
         try:

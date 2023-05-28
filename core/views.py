@@ -47,6 +47,14 @@ class ApiRootView(APIView):
 
 
 class HealthFacilityViewSet(viewsets.ModelViewSet):
+    def sync_emr(self):
+        from .api import get_and_sync_facilities
+        get_and_sync_facilities()
+
+    def list(self, request, *args, **kwargs):
+        self.sync_emr()
+        return super().list(request, *args, **kwargs)
+
     permission_classes = [permissions.AllowAny,
                           custom_permissions.IsDoctorOrReadOnly]
     queryset = HealthFacility.objects.all()
